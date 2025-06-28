@@ -34,7 +34,8 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
         with:
-          node-version: '18' # Use a stable Node.js version compatible with your React app
+          # Use a stable Node.js version compatible with your React app
+          node-version: '18'
 
       - name: Install dependencies
         run: npm install
@@ -50,6 +51,11 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for Github integrations (i.e. PR comments)
           action: "upload"
           app_location: "/" # Location of your React app's build output relative to the repository root
+          api_location: "" # Set to your API project path, or leave empty if no API
+          output_location: "build" # Set to your client app's build output path, or leave empty if your app is in the app_location folder
+          skip_app_build: true # We already built the app in the previous step
+          skip_api_build: true # No API in this project
+
           api_location: "" # Set to your API project path, or leave empty if no API
           output_location: "build" # Set to your client app's build output path, or leave empty if your app is in the app_location folder
           skip_app_build: true # We already built the app in the previous step
