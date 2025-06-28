@@ -20,7 +20,7 @@ jobs:
           submodules: true
           lfs: true
 
-      # --- DEBUGGING STEPS ---
+      # --- DEBUGGING STEPS START ---
       - name: Debug: Print Working Directory
         run: pwd
 
@@ -29,7 +29,7 @@ jobs:
 
       - name: Debug: Print package.json content
         run: cat package.json
-      # --- END DEBUGGING STEPS ---
+      # --- DEBUGGING STEPS END ---
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
