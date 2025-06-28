@@ -32,7 +32,7 @@ interface Idea {
 
 const API_BASE_URL = 'http://localhost:5001';
 
-const Sidebar: React.FC = (   ) => {
+const Sidebar: React.FC = (    ) => {
   const location = useLocation();
   return (
     <div className="sidebar">
@@ -284,7 +284,7 @@ const AgentStatusPage: React.FC<{ agents: AgentStatus[] }> = ({ agents }) => {
           </div>
         ))}
       </div>
-    </div> {/* ADDED: Missing closing div for agent-status-grid */}
+    </div>
   );
 };
 
