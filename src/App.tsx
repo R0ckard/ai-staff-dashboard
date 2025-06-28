@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react-router-dom';
-import { LineChart as RechartsLineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Home, Activity, Lightbulb, Users, Settings, MessageSquare, TrendingUp, DollarSign, Target, Zap, Archive, FlaskConical, Eye, Clock, LineChart as LineChartIcon } from 'lucide-react'; // Renamed LineChart to LineChartIcon
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Home, Activity, Lightbulb, Users, TrendingUp, DollarSign, Target, Zap, Clock } from 'lucide-react';
 import './App.css';
-import './index.css'; // Ensure index.css is imported for global styles
+import './index.css';
 
 interface AgentStatus {
   id: string;
@@ -32,7 +32,7 @@ interface Idea {
 
 const API_BASE_URL = 'http://localhost:5001';
 
-const Sidebar: React.FC = ( ) => {
+const Sidebar: React.FC = (  ) => {
   const location = useLocation();
   return (
     <div className="sidebar">
@@ -57,7 +57,7 @@ const Sidebar: React.FC = ( ) => {
           <Lightbulb size={20} /> Idea Pipeline
         </Link>
         <Link to="/analytics" className={`nav-item ${location.pathname === '/analytics' ? 'active' : ''}`}>
-          <LineChartIcon size={20} /> Analytics {/* Changed to LineChartIcon */}
+          <Activity size={20} /> Analytics
         </Link>
         <Link to="/executive-view" className={`nav-item ${location.pathname === '/executive-view' ? 'active' : ''}`}>
           <Users size={20} /> Executive View
@@ -284,8 +284,7 @@ const AgentStatusPage: React.FC<{ agents: AgentStatus[] }> = ({ agents }) => {
           </div>
         ))}
       </div>
-    </div>
-  );
+    );
 };
 
 const IdeaPipeline: React.FC<{ ideas: Idea[] }> = ({ ideas }) => {
