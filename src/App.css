@@ -1,0 +1,90 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Fast Track Idea Card Styling */
+.idea-card.fast-track-card {
+  border: 2px solid #43e97b; /* Green border */
+  box-shadow: 0 4px 12px rgba(67, 233, 123, 0.3); /* Green glow */
+  background-color: #e6ffe6; /* Light green background */
+}
+
+.idea-card.fast-track-card .idea-title {
+  color: #28a745; /* Darker green title */
+}
+
+.idea-card.fast-track-card .idea-decision-badge {
+  background-color: #28a745; /* Solid green badge */
+  color: white;
+  font-weight: bold;
+}
+
+/* Metric items styling */
+.idea-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+}
+
+.metric-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.9em;
+  color: #555;
+  background-color: #f0f4f8;
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+
+.metric-item svg {
+  color: #4facfe; /* Icon color */
+}
+
+.idea-description-full {
+  white-space: pre-wrap; /* Preserves whitespace and line breaks */
+  word-wrap: break-word; /* Breaks long words */
+  margin-top: 10px;
+  margin-bottom: 10px;
+  color: #333;
+  font-size: 0.95em;
+  line-height: 1.5;
+}

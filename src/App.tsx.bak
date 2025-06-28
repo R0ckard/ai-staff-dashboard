@@ -1,0 +1,649 @@
+import React, { useState, useEffect } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { Activity, Users, Lightbulb, TrendingUp, CheckCircle, AlertCircle, Clock, Zap, BarChart3, Home, Wifi, WifiOff } from 'lucide-react';
+
+interface Agent {
+  id: string;
+  name: string;
+  port: number;
+  team: string;
+  role: string;
+  status: 'healthy' | 'offline' | 'error';
+  response_time: string;
+  last_update: string;
+  error?: string;
+}
+
+interface Idea {
+  id: string;
+  title: string;
+  description: string;
+  agent: string;
+  agent_id: string;
+  profitTier?: number;
+  iceScore?: number;
+  weightedScore?: number;
+  decision: 'fast_track' | 'prototype' | 'watch_list' | 'archive';
+  timestamp: string;
+}
+
+interface ApiResponse {
+  agents: Agent[];
+  total_agents: number;
+  healthy_agents: number;
+  last_check: string;
+}
+
+interface IdeasResponse {
+  ideas: Idea[];
+  total_ideas: number;
+  fast_track: number;
+  prototype: number;
+  last_updated: string;
+}
+
+interface MetricsResponse {
+  total_agents: number;
+  healthy_agents: number;
+  offline_agents: number;
+  uptime_percentage: number;
+  last_updated: string;
+}
+
+const App: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('overview');
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [ideas, setIdeas] = useState<Idea[]>([]);
+  const [metrics, setMetrics] = useState<MetricsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState<string>('');
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected'>('disconnected');
+
+  // API Gateway URL
+  const API_BASE = 'http://localhost:5001/api';
+
+  const fetchAgentStatus = async ( ) => {
+    try {
+      const response = await fetch(`${API_BASE}/agents/status`);
+      if (response.ok) {
+        const data: ApiResponse = await response.json();
+        setAgents(data.agents);
+        setConnectionStatus('connected');
+        setLastUpdate(new Date().toLocaleTimeString());
+      } else {
+        setConnectionStatus('disconnected');
+      }
+    } catch (error) {
+      console.error('Failed to fetch agent status:', error);
+      setConnectionStatus('disconnected');
+    }
+  };
+
+  const fetchIdeas = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/ideas`);
+      if (response.ok) {
+        const data: IdeasResponse = await response.json();
+        setIdeas(data.ideas);
+      }
+    } catch (error) {
+      console.error('Failed to fetch ideas:', error);
+    }
+  };
+
+  const fetchMetrics = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/metrics`);
+      if (response.ok) {
+        const data: MetricsResponse = await response.json();
+        setMetrics(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch metrics:', error);
+    }
+  };
+
+  const fetchAllData = async () => {
+    await Promise.all([
+      fetchAgentStatus(),
+      fetchIdeas(),
+      fetchMetrics()
+    ]);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    // Initial data fetch
+    fetchAllData();
+
+    // Set up periodic refresh every 60 seconds
+    const interval = setInterval(fetchAllData, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const healthyAgents = agents.filter(a => a.status === 'healthy').length;
+  const fastTrackIdeas = ideas.filter(i => i.decision === 'fast_track').length;
+  const prototypeIdeas = ideas.filter(i => i.decision === 'prototype').length;
+
+  const decisionData = [
+    { name: 'Fast Track', value: ideas.filter(i => i.decision === 'fast_track').length, color: '#43e97b' },
+    { name: 'Prototype', value: ideas.filter(i => i.decision === 'prototype').length, color: '#4facfe' },
+    { name: 'Watch List', value: ideas.filter(i => i.decision === 'watch_list').length, color: '#feca57' },
+    { name: 'Archive', value: ideas.filter(i => i.decision === 'archive').length, color: '#a0aec0' },
+  ];
+
+  const teamPerformance = [
+    { 
+      name: 'Hoddle Team', 
+      agents: agents.filter(a => a.team === 'hoddle').length,
+      healthy: agents.filter(a => a.team === 'hoddle' && a.status === 'healthy').length,
+      ideas: ideas.filter(i => i.agent_id?.includes('hoddle')).length
+    },
+    { 
+      name: 'Waddle Team', 
+      agents: agents.filter(a => a.team === 'waddle').length,
+      healthy: agents.filter(a => a.team === 'waddle' && a.status === 'healthy').length,
+      ideas: ideas.filter(i => i.agent_id?.includes('waddle')).length
+    },
+    { 
+      name: 'Executive', 
+      agents: agents.filter(a => a.team === 'executive').length,
+      healthy: agents.filter(a => a.team === 'executive' && a.status === 'healthy').length,
+      ideas: 0
+    }
+  ];
+
+  const navigationItems = [
+    { id: 'overview', label: 'Overview', icon: Home },
+    { id: 'agents', label: 'Agent Status', icon: Users },
+    { id: 'ideas', label: 'Idea Pipeline', icon: Lightbulb },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { id: 'executive', label: 'Executive View', icon: TrendingUp }
+  ];
+
+  if (loading) {
+    return (
+      <div className="dashboard-container">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <div className="loading-text">Connecting to AI Staff Suite...</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="dashboard-container">
+      <div className="sidebar">
+        <div className="sidebar-header">
+          <div className="sidebar-logo">
+            <div className="sidebar-logo-icon">
+              <Zap size={20} />
+            </div>
+            <div>
+              <h1 className="sidebar-title">AI Staff Suite</h1>
+              <p className="sidebar-subtitle">Analytics Dashboard</p>
+            </div>
+          </div>
+          
+          {/* Connection Status */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '0.5rem', 
+            marginTop: '1rem',
+            padding: '0.5rem',
+            borderRadius: '8px',
+            backgroundColor: connectionStatus === 'connected' ? 'rgba(72, 187, 120, 0.1)' : 'rgba(245, 101, 101, 0.1)'
+          }}>
+            {connectionStatus === 'connected' ? (
+              <Wifi size={16} style={{ color: '#48bb78' }} />
+            ) : (
+              <WifiOff size={16} style={{ color: '#f56565' }} />
+            )}
+            <span style={{ 
+              fontSize: '0.75rem', 
+              color: connectionStatus === 'connected' ? '#48bb78' : '#f56565',
+              fontWeight: '500'
+            }}>
+              {connectionStatus === 'connected' ? 'Live Data' : 'Disconnected'}
+            </span>
+          </div>
+          
+          {lastUpdate && (
+            <div style={{ fontSize: '0.7rem', color: '#718096', marginTop: '0.25rem' }}>
+              Last update: {lastUpdate}
+            </div>
+          )}
+        </div>
+        
+        <nav className="sidebar-nav">
+          {navigationItems.map(({ id, label, icon: Icon }) => (
+            <div
+              key={id}
+              onClick={() => setActiveTab(id)}
+              className={`nav-item ${activeTab === id ? 'active' : ''}`}
+            >
+              <Icon className="nav-icon" size={20} />
+              <span>{label}</span>
+            </div>
+          ))}
+        </nav>
+      </div>
+
+      <div className="main-content">
+        {activeTab === 'overview' && (
+          <div>
+            <div className="stats-grid">
+              <div className="stat-card">
+                <div className="stat-header">
+                  <div className="stat-icon stat-icon-blue">
+                    <Users size={24} />
+                  </div>
+                  <div className="stat-change">
+                    {metrics ? `${metrics.uptime_percentage}%` : 'N/A'}
+                  </div>
+                </div>
+                <div className="stat-value">{agents.length}</div>
+                <div className="stat-label">Total Agents</div>
+              </div>
+
+              <div className="stat-card">
+                <div className="stat-header">
+                  <div className="stat-icon stat-icon-green">
+                    <CheckCircle size={24} />
+                  </div>
+                  <div className="stat-change">Live</div>
+                </div>
+                <div className="stat-value">{healthyAgents}</div>
+                <div className="stat-label">Healthy Agents</div>
+              </div>
+
+              <div className="stat-card">
+                <div className="stat-header">
+                  <div className="stat-icon stat-icon-purple">
+                    <Lightbulb size={24} />
+                  </div>
+                  <div className="stat-change">
+                    {ideas.length > 0 ? '+' + ideas.length : '0'}
+                  </div>
+                </div>
+                <div className="stat-value">{ideas.length}</div>
+                <div className="stat-label">Total Ideas</div>
+              </div>
+
+              <div className="stat-card">
+                <div className="stat-header">
+                  <div className="stat-icon stat-icon-orange">
+                    <TrendingUp size={24} />
+                  </div>
+                  <div className="stat-change">
+                    {fastTrackIdeas > 0 ? '+' + fastTrackIdeas : '0'}
+                  </div>
+                </div>
+                <div className="stat-value">{fastTrackIdeas}</div>
+                <div className="stat-label">Fast Track Ideas</div>
+              </div>
+            </div>
+
+            <div className="charts-grid">
+              <div className="chart-card">
+                <div className="chart-header">
+                  <h3 className="chart-title">Team Performance</h3>
+                  <p className="chart-subtitle">Agent health by team</p>
+                </div>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={teamPerformance}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip />
+                    <Bar dataKey="healthy" fill="#43e97b" radius={[4, 4, 0, 0]} name="Healthy" />
+                    <Bar dataKey="agents" fill="#e2e8f0" radius={[4, 4, 0, 0]} name="Total" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {ideas.length > 0 && (
+                <div className="chart-card">
+                  <div className="chart-header">
+                    <h3 className="chart-title">Decision Distribution</h3>
+                    <p className="chart-subtitle">Live idea validation outcomes</p>
+                  </div>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={decisionData.filter(d => d.value > 0)}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={100}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {decisionData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+
+              <div className="chart-card">
+                <div className="chart-header">
+                  <h3 className="chart-title">System Status</h3>
+                  <p className="chart-subtitle">Live monitoring overview</p>
+                </div>
+                <div className="modern-card">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>System Uptime</span>
+                      <span style={{ fontWeight: '600', color: '#43e97b' }}>
+                        {metrics ? `${metrics.uptime_percentage}%` : 'Loading...'}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>Active Agents</span>
+                      <span style={{ fontWeight: '600', color: '#4facfe' }}>
+                        {healthyAgents} / {agents.length}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>Ideas Generated</span>
+                      <span style={{ fontWeight: '600', color: '#feca57' }}>
+                        {ideas.length}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>Connection Status</span>
+                      <span style={{ 
+                        fontWeight: '600', 
+                        color: connectionStatus === 'connected' ? '#43e97b' : '#f56565' 
+                      }}>
+                        {connectionStatus === 'connected' ? 'Connected' : 'Disconnected'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'agents' && (
+          <div>
+            <div className="chart-header" style={{ marginBottom: '2rem' }}>
+              <h2 className="chart-title" style={{ fontSize: '2rem', color: 'white' }}>Live Agent Status</h2>
+              <p className="chart-subtitle" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                Real-time health monitoring • Updates every 60 seconds
+              </p>
+            </div>
+            <div className="agents-grid">
+              {agents.map((agent) => (
+                <div key={agent.id} className="agent-card">
+                  <div className="agent-header">
+                    <h3 className="agent-name">{agent.name}</h3>
+                    <span className={`status-badge ${
+                      agent.status === 'healthy' ? 'status-healthy' : 
+                      agent.status === 'offline' ? 'status-offline' : 'status-error'
+                    }`}>
+                      {agent.status}
+                    </span>
+                  </div>
+                  <div className="agent-details">
+                    <div className="agent-detail">
+                      <span className="agent-detail-label">Port</span>
+                      <span className="agent-detail-value">{agent.port}</span>
+                    </div>
+                    <div className="agent-detail">
+                      <span className="agent-detail-label">Team</span>
+                      <span className="agent-detail-value">{agent.team}</span>
+                    </div>
+                    <div className="agent-detail">
+                      <span className="agent-detail-label">Role</span>
+                      <span className="agent-detail-value">{agent.role}</span>
+                    </div>
+                    <div className="agent-detail">
+                      <span className="agent-detail-label">Response Time</span>
+                      <span className="agent-detail-value">{agent.response_time}</span>
+                    </div>
+                    <div className="agent-detail">
+                      <span className="agent-detail-label">Last Update</span>
+                      <span className="agent-detail-value">{agent.last_update}</span>
+                    </div>
+                    {agent.error && (
+                      <div className="agent-detail" style={{ gridColumn: '1 / -1' }}>
+                        <span className="agent-detail-label">Error</span>
+                        <span className="agent-detail-value" style={{ color: '#f56565', fontSize: '0.8rem' }}>
+                          {agent.error}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'ideas' && (
+          <div>
+            <div className="chart-header" style={{ marginBottom: '2rem' }}>
+              <h2 className="chart-title" style={{ fontSize: '2rem', color: 'white' }}>Live Idea Pipeline</h2>
+              <p className="chart-subtitle" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                Real-time ideas from operational agents • {ideas.length} total ideas
+              </p>
+            </div>
+            {ideas.length > 0 ? (
+              <div className="ideas-list">
+                {ideas.map((idea) => (
+                  <div key={idea.id} className="idea-card">
+                    <div className="idea-header">
+                      <div>
+                        <h3 className="idea-title">{idea.title}</h3>
+                        <div className="idea-badges">
+                          <span className={`decision-badge badge-${idea.decision.replace('_', '-')}`}>
+                            {idea.decision.replace('_', ' ')}
+                          </span>
+                          {idea.profitTier && (
+                            <span className={`tier-badge tier-${idea.profitTier}`}>
+                              Tier {idea.profitTier}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="idea-description">{idea.description}</p>
+                    <div className="idea-metrics">
+                      {idea.iceScore && (
+                        <div className="idea-metric">
+                          <span className="metric-label">ICE+ Score</span>
+                          <span className="metric-value">{idea.iceScore}</span>
+                        </div>
+                      )}
+                      {idea.weightedScore && (
+                        <div className="idea-metric">
+                          <span className="metric-label">Matrix Score</span>
+                          <span className="metric-value">{idea.weightedScore}</span>
+                        </div>
+                      )}
+                      <div className="idea-metric">
+                        <span className="metric-label">Generated by</span>
+                        <span className="metric-value">{idea.agent}</span>
+                      </div>
+                      <div className="idea-metric">
+                        <span className="metric-label">Timestamp</span>
+                        <span className="metric-value">{idea.timestamp}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="modern-card">
+                <div style={{ textAlign: 'center', padding: '2rem' }}>
+                  <Lightbulb size={48} style={{ color: '#718096', marginBottom: '1rem' }} />
+                  <h3 style={{ color: '#1a202c', marginBottom: '0.5rem' }}>No Ideas Yet</h3>
+                  <p style={{ color: '#718096' }}>
+                    Ideas will appear here as your ideation agents generate them. 
+                    Make sure your Hoddle and Waddle agents are running.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'analytics' && (
+          <div>
+            <div className="chart-header" style={{ marginBottom: '2rem' }}>
+              <h2 className="chart-title" style={{ fontSize: '2rem', color: 'white' }}>Live Analytics</h2>
+              <p className="chart-subtitle" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                Real-time performance metrics and insights
+              </p>
+            </div>
+            <div className="charts-grid">
+              <div className="modern-card">
+                <h3 className="chart-title">System Performance</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '1.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>Overall Health</span>
+                    <span style={{ 
+                      fontWeight: '600', 
+                      fontSize: '1.2rem',
+                      color: healthyAgents === agents.length ? '#43e97b' : healthyAgents > 0 ? '#feca57' : '#f56565'
+                    }}>
+                      {agents.length > 0 ? Math.round((healthyAgents / agents.length) * 100) : 0}%
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>Active Teams</span>
+                    <span style={{ fontWeight: '600', fontSize: '1.2rem', color: '#4facfe' }}>
+                      {new Set(agents.filter(a => a.status === 'healthy').map(a => a.team)).size}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>Idea Generation Rate</span>
+                    <span style={{ fontWeight: '600', fontSize: '1.2rem', color: '#feca57' }}>
+                      {ideas.length > 0 ? `${ideas.length} ideas` : 'No data'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="modern-card">
+                <h3 className="chart-title">Agent Distribution</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
+                  {teamPerformance.map((team) => (
+                    <div key={team.name} style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center',
+                      padding: '0.75rem',
+                      backgroundColor: '#f7fafc',
+                      borderRadius: '8px'
+                    }}>
+                      <span style={{ fontWeight: '500' }}>{team.name}</span>
+                      <span style={{ 
+                        fontWeight: '600',
+                        color: team.healthy === team.agents ? '#43e97b' : team.healthy > 0 ? '#feca57' : '#f56565'
+                      }}>
+                        {team.healthy}/{team.agents}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'executive' && (
+          <div>
+            <div className="chart-header" style={{ marginBottom: '2rem' }}>
+              <h2 className="chart-title" style={{ fontSize: '2rem', color: 'white' }}>Executive Summary</h2>
+              <p className="chart-subtitle" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                Live strategic insights and system status
+              </p>
+            </div>
+            <div className="charts-grid">
+              <div className="modern-card">
+                <h3 className="chart-title">Current Status</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '1.5rem' }}>
+                  <div style={{ 
+                    padding: '1.5rem', 
+                    backgroundColor: healthyAgents > 0 ? 'rgba(72, 187, 120, 0.1)' : 'rgba(245, 101, 101, 0.1)',
+                    borderRadius: '12px'
+                  }}>
+                    <h4 style={{ fontWeight: '600', marginBottom: '0.5rem' }}>System Health</h4>
+                    <p style={{ opacity: 0.9 }}>
+                      {healthyAgents} of {agents.length} agents operational. 
+                      {healthyAgents === agents.length ? ' All systems running optimally.' : 
+                       healthyAgents > 0 ? ' Partial operations active.' : ' System offline.'}
+                    </p>
+                  </div>
+                  
+                  {ideas.length > 0 && (
+                    <div style={{ 
+                      padding: '1.5rem', 
+                      backgroundColor: 'rgba(79, 172, 254, 0.1)',
+                      borderRadius: '12px'
+                    }}>
+                      <h4 style={{ fontWeight: '600', marginBottom: '0.5rem' }}>Innovation Pipeline</h4>
+                      <p style={{ opacity: 0.9 }}>
+                        {ideas.length} ideas generated with {fastTrackIdeas} fast-track opportunities identified.
+                        {fastTrackIdeas > 0 ? ' Ready for development prioritization.' : ' Continue monitoring for opportunities.'}
+                      </p>
+                    </div>
+                  )}
+                  
+                  <div style={{ 
+                    padding: '1.5rem', 
+                    backgroundColor: 'rgba(254, 202, 87, 0.1)',
+                    borderRadius: '12px'
+                  }}>
+                    <h4 style={{ fontWeight: '600', marginBottom: '0.5rem' }}>Next Steps</h4>
+                    <p style={{ opacity: 0.9 }}>
+                      {healthyAgents < agents.length ? 
+                        `Bring ${agents.length - healthyAgents} offline agents online for full operational capacity.` :
+                        'System ready for next phase development. Consider expanding to Build Team agents.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="modern-card">
+                <h3 className="chart-title">Live Metrics</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '1.5rem' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '3rem', fontWeight: '700', color: '#43e97b', marginBottom: '0.5rem' }}>
+                      {agents.length > 0 ? Math.round((healthyAgents / agents.length) * 100) : 0}%
+                    </div>
+                    <div style={{ fontSize: '1rem', color: '#718096' }}>System Uptime</div>
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '2rem', fontWeight: '600', color: '#4facfe' }}>{healthyAgents}</div>
+                      <div style={{ fontSize: '0.9rem', color: '#718096' }}>Active Agents</div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '2rem', fontWeight: '600', color: '#feca57' }}>{ideas.length}</div>
+                      <div style={{ fontSize: '0.9rem', color: '#718096' }}>Ideas Generated</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default App;
