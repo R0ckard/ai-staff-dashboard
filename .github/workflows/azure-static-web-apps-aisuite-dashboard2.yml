@@ -23,7 +23,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Updated to Node.js 20
+          node-version: '20'
 
       - name: Install dependencies
         run: npm install
@@ -40,6 +40,6 @@ jobs:
           action: "upload"
           app_location: "/"
           api_location: ""
-          output_location: "build"
+          app_artifact_location: "build" # Changed from output_location to app_artifact_location
           skip_app_build: true
           skip_api_build: true
