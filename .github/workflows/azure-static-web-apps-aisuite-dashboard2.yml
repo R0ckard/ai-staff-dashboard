@@ -41,6 +41,5 @@ jobs:
           app_location: "/"
           api_location: ""
           output_location: "build" # Standard for React apps, relative to app_location
-          # Removed app_artifact_location as output_location is preferred here
           skip_app_build: true
           skip_api_build: true
