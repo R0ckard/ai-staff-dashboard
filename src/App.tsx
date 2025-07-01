@@ -30,7 +30,7 @@ interface Idea {
   profit_tier: number; // Profit Tier
 }
 
-const API_BASE_URL = 'http://ai-staff-suite-api-v2.centralus.azurecontainer.io:5001';
+const API_BASE_URL = 'http://ai-staff-suite-api-final.centralus.azurecontainer.io:5001';
 
 const Sidebar: React.FC = (    ) => {
   const location = useLocation();
