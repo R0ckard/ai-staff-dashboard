@@ -20,42 +20,38 @@ jobs:
           submodules: true
           lfs: true
 
-      # --- DEBUGGING STEPS START ---
-      - name: Debug: Print Working Directory
-        run: pwd
-
-      - name: Debug: List Directory Contents
-        run: ls -la
-
-      - name: Debug: Print package.json content
-        run: cat package.json
-      # --- DEBUGGING STEPS END ---
-
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
         with:
-          # Use a stable Node.js version compatible with your React app
-          node-version: '18'
+          node-version: '20'
 
       - name: Install dependencies
         run: npm install
 
-      - name: Build
+      - name: Build React app
         run: npm run build
 
       - name: Deploy to Azure Static Web Apps
         id: builddeploy
-        uses: azure/static-web-apps-deploy@v1
+        uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_AISUITE_DASHBOARD }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for Github integrations (i.e. PR comments)
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "/" # Location of your React app's build output relative to the repository root
-          api_location: "" # Set to your API project path, or leave empty if no API
-          output_location: "build" # Set to your client app's build output path, or leave empty if your app is in the app_location folder
-          skip_app_build: true # We already built the app in the previous step
-          skip_api_build: true # No API in this project
-I project path, or leave empty if no API
-          output_location: "build" # Set to your client app's build output path, or leave empty if your app is in the app_location folder
-          skip_app_build: true # We already built the app in the previous step
-          skip_api_build: true # No API in this project
+          app_location: "build"
+          api_location: ""
+          output_location: ""
+          skip_app_build: true
+          skip_api_build: true
+
+  close_pull_request_job:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    name: Close Pull Request Job
+    steps:
+      - name: Close Pull Request
+        id: closepullrequest
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_AISUITE_DASHBOARD }}
+          action: "close"
