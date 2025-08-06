@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { Home, Activity, Lightbulb, Users, TrendingUp, DollarSign, Target, Zap, Clock, MessageSquare, CheckCircle, AlertCircle, Brain } from 'lucide-react';
+import { Home, Activity, Lightbulb, Users, TrendingUp, DollarSign, Target, Zap, Clock, MessageSquare, Brain } from 'lucide-react';
 import './App.css';
 import './index.css';
 
