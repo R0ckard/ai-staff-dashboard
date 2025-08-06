@@ -48,6 +48,7 @@ interface CosPmStatus {
 }
 
 const API_BASE_URL = 'https://ai-staff-api-gateway.ambitioussea-9ca2abb1.centralus.azurecontainerapps.io';
+const IDEAS_API_URL = 'https://vgh0i1c55mvk.manus.space/api';
 const COS_API_URL = 'https://ai-staff-chief-of-staff.ambitioussea-9ca2abb1.centralus.azurecontainerapps.io';
 const PM_API_URL = 'https://ai-staff-project-manager.ambitioussea-9ca2abb1.centralus.azurecontainerapps.io';
 
@@ -738,7 +739,7 @@ const App: React.FC = () => {
     try {
       const [agentsResponse, ideasResponse] = await Promise.all([
         fetch(`${API_BASE_URL}/api/agents/status`),
-        fetch(`${API_BASE_URL}/api/ideas`)
+        fetch(`${IDEAS_API_URL}/ideas`)
       ]);
 
       const agentsData = await agentsResponse.json();
@@ -750,12 +751,26 @@ const App: React.FC = () => {
       console.log('Setting agents state with:', agentsData.agents || []);
 
       setAgents(agentsData.agents || []);
-      setIdeas(ideasData.ideas || []);
-      setTotalIdeas(ideasData.total_ideas || 0);
-      setFastTrackIdeas(ideasData.fast_track || 0);
-      setPrototypeIdeas(ideasData.prototype || 0);
+      
+      // Transform Ideas API data to match dashboard format
+      const transformedIdeas = (ideasData.ideas || []).map((idea: any) => ({
+        id: idea.id.toString(),
+        title: idea.content.substring(0, 100) + '...',
+        content: idea.content,
+        decision: idea.final_decision,
+        agent: idea.agent_name,
+        created_at: idea.created_at,
+        ice_plus_score: idea.ice_plus_score || 0,
+        matrix_score: idea.weighted_matrix_score || 0,
+        profit_tier: idea.profit_tier || 1
+      }));
+      
+      setIdeas(transformedIdeas);
+      setTotalIdeas(ideasData.summary?.total_insights || transformedIdeas.length);
+      setFastTrackIdeas(ideasData.summary?.fast_track || transformedIdeas.filter((i: any) => i.decision === 'fast_track').length);
+      setPrototypeIdeas(ideasData.summary?.prototype || transformedIdeas.filter((i: any) => i.decision === 'prototype').length);
 
-      console.log('State updates completed');
+      console.log('State updates completed - Total Ideas:', transformedIdeas.length);
 
     } catch (error) {
       console.error("Failed to fetch data:", error);
