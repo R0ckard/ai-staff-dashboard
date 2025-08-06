@@ -334,8 +334,13 @@ const CosPmMonitor: React.FC<{ cosPmStatus: CosPmStatus | null }> = ({ cosPmStat
 };
 
 const Overview: React.FC<{ agents: AgentStatus[]; ideas: Idea[]; totalIdeas: number; fastTrackIdeas: number; prototypeIdeas: number; cosPmStatus: CosPmStatus | null }> = ({ agents, ideas, totalIdeas, fastTrackIdeas, prototypeIdeas, cosPmStatus }) => {
+  console.log('Overview component received agents:', agents);
+  console.log('Agents length:', agents.length);
+  
   const healthyAgents = agents.filter(a => a.status === 'healthy').length;
   const totalAgentCount = agents.length;
+  
+  console.log('Calculated values:', { healthyAgents, totalAgentCount });
 
   const decisionData = [
     { name: 'Fast Track', value: ideas.filter(i => i.decision === 'fast_track').length, color: '#43e97b' },
@@ -551,6 +556,9 @@ const Overview: React.FC<{ agents: AgentStatus[]; ideas: Idea[]; totalIdeas: num
 };
 
 const AgentStatusPage: React.FC<{ agents: AgentStatus[] }> = ({ agents }) => {
+  console.log('AgentStatusPage received agents:', agents);
+  console.log('Number of agents:', agents.length);
+  
   return (
     <div className="main-content">
       <div className="header">
@@ -736,11 +744,18 @@ const App: React.FC = () => {
       const agentsData = await agentsResponse.json();
       const ideasData = await ideasResponse.json();
 
+      console.log('API Response - Agents:', agentsData);
+      console.log('API Response - Ideas:', ideasData);
+      console.log('Agents Array:', agentsData.agents);
+      console.log('Setting agents state with:', agentsData.agents || []);
+
       setAgents(agentsData.agents || []);
       setIdeas(ideasData.ideas || []);
       setTotalIdeas(ideasData.total_ideas || 0);
       setFastTrackIdeas(ideasData.fast_track || 0);
       setPrototypeIdeas(ideasData.prototype || 0);
+
+      console.log('State updates completed');
 
     } catch (error) {
       console.error("Failed to fetch data:", error);
