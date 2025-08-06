@@ -47,7 +47,7 @@ interface CosPmStatus {
   last_communication: string;
 }
 
-const API_BASE_URL = 'https://ai-staff-suite-api-https.ambitioussea-9ca2abb1.centralus.azurecontainerapps.io';
+const API_BASE_URL = 'https://ai-staff-api-gateway.ambitioussea-9ca2abb1.centralus.azurecontainerapps.io';
 const COS_API_URL = 'https://ai-staff-chief-of-staff.ambitioussea-9ca2abb1.centralus.azurecontainerapps.io';
 const PM_API_URL = 'https://ai-staff-project-manager.ambitioussea-9ca2abb1.centralus.azurecontainerapps.io';
 
@@ -752,9 +752,9 @@ const App: React.FC = () => {
     fetchAllData();
     fetchCosPmStatus();
 
-    // Set up periodic refresh
-    const dataInterval = setInterval(fetchAllData, 60000); // Every 60 seconds
-    const cosPmInterval = setInterval(fetchCosPmStatus, 30000); // Every 30 seconds
+    // Set up periodic refresh - 5 minute intervals for uptime monitoring
+    const dataInterval = setInterval(fetchAllData, 300000); // Every 5 minutes (300 seconds)
+    const cosPmInterval = setInterval(fetchCosPmStatus, 300000); // Every 5 minutes (300 seconds)
 
     return () => {
       clearInterval(dataInterval);
