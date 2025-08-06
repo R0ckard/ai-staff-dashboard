@@ -589,6 +589,9 @@ const AgentStatusPage: React.FC<{ agents: AgentStatus[] }> = ({ agents }) => {
 
 const IdeaPipeline: React.FC<{ ideas: Idea[] }> = ({ ideas }) => {
   const [expandedIdeaId, setExpandedIdeaId] = useState<string | null>(null);
+  const [filterDecision, setFilterDecision] = useState<string>('all');
+  const [filterAgent, setFilterAgent] = useState<string>('all');
+  const [filterProfitTier, setFilterProfitTier] = useState<string>('all');
 
   const toggleExpand = (id: string) => {
     setExpandedIdeaId(expandedIdeaId === id ? null : id);
@@ -599,20 +602,73 @@ const IdeaPipeline: React.FC<{ ideas: Idea[] }> = ({ ideas }) => {
     return text.substring(0, maxLength) + '...';
   };
 
+  // Filter ideas based on selected filters
+  const filteredIdeas = ideas.filter(idea => {
+    if (filterDecision !== 'all' && idea.decision !== filterDecision) return false;
+    if (filterAgent !== 'all' && idea.agent !== filterAgent) return false;
+    if (filterProfitTier !== 'all' && idea.profit_tier?.toString() !== filterProfitTier) return false;
+    return true;
+  });
+
+  // Get unique agents for filter dropdown
+  const uniqueAgents = [...new Set(ideas.map(idea => idea.agent))];
+
   return (
     <div className="main-content">
       <div className="header">
         <h1>Live Idea Pipeline</h1>
-        <p className="subtitle">Real-time ideas from operational agents • {ideas.length} total ideas</p>
+        <p className="subtitle">Real-time ideas from operational agents • {filteredIdeas.length} of {ideas.length} ideas</p>
+      </div>
+      
+      {/* Filter Interface */}
+      <div className="filter-panel">
+        <div className="filter-row">
+          <div className="filter-group">
+            <label>Decision Status:</label>
+            <select value={filterDecision} onChange={(e) => setFilterDecision(e.target.value)}>
+              <option value="all">All Ideas</option>
+              <option value="fast_track">🚀 Fast Track Only</option>
+              <option value="prototype">🔧 Prototype</option>
+              <option value="archive">📁 Archive</option>
+            </select>
+          </div>
+          
+          <div className="filter-group">
+            <label>Agent:</label>
+            <select value={filterAgent} onChange={(e) => setFilterAgent(e.target.value)}>
+              <option value="all">All Agents</option>
+              {uniqueAgents.map(agent => (
+                <option key={agent} value={agent}>{agent.replace('_', ' ')}</option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="filter-group">
+            <label>Profit Tier:</label>
+            <select value={filterProfitTier} onChange={(e) => setFilterProfitTier(e.target.value)}>
+              <option value="all">All Tiers</option>
+              <option value="1">Tier 1 (>$5k/month)</option>
+              <option value="2">Tier 2 ($1k-$5k/month)</option>
+              <option value="3">Tier 3 (<$1k/month)</option>
+            </select>
+          </div>
+          
+          <button 
+            className="fast-track-btn"
+            onClick={() => setFilterDecision(filterDecision === 'fast_track' ? 'all' : 'fast_track')}
+          >
+            {filterDecision === 'fast_track' ? 'Show All Ideas' : '🚀 Show Fast Track Only'}
+          </button>
+        </div>
       </div>
       <div className="idea-list">
-        {ideas.length === 0 ? (
+        {filteredIdeas.length === 0 ? (
           <div className="no-ideas">
             <Lightbulb size={48} color="#a0aec0" />
-            <p>No Ideas Yet. Agents are working to generate new insights!</p>
+            <p>{ideas.length === 0 ? 'No Ideas Yet. Agents are working to generate new insights!' : 'No ideas match the current filters.'}</p>
           </div>
         ) : (
-          ideas.map((idea) => (
+          filteredIdeas.map((idea) => (
             <div 
               key={idea.id} 
               className={`idea-card ${idea.decision === 'fast_track' ? 'fast-track-card' : ''}`}
