@@ -611,7 +611,7 @@ const IdeaPipeline: React.FC<{ ideas: Idea[] }> = ({ ideas }) => {
   });
 
   // Get unique agents for filter dropdown
-  const uniqueAgents = [...new Set(ideas.map(idea => idea.agent))];
+  const uniqueAgents = Array.from(new Set(ideas.map(idea => idea.agent)));
 
   return (
     <div className="main-content">
@@ -647,9 +647,9 @@ const IdeaPipeline: React.FC<{ ideas: Idea[] }> = ({ ideas }) => {
             <label>Profit Tier:</label>
             <select value={filterProfitTier} onChange={(e) => setFilterProfitTier(e.target.value)}>
               <option value="all">All Tiers</option>
-              <option value="1">Tier 1 (>$5k/month)</option>
+              <option value="1">Tier 1 (&gt;$5k/month)</option>
               <option value="2">Tier 2 ($1k-$5k/month)</option>
-              <option value="3">Tier 3 (<$1k/month)</option>
+              <option value="3">Tier 3 (&lt;$1k/month)</option>
             </select>
           </div>
           
