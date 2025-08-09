@@ -5,6 +5,18 @@ import { useState, useEffect } from 'react';
 import './App.css';
 import './index.css';
 
+interface AgentStatus {
+  id: string;
+  name: string;
+  status: string;
+  port: number;
+  team: string;
+  role: string;
+  response_time: string;
+  last_update: string;
+  error: string | null;
+}
+
 interface IdeationAgent {
   id: string;
   name: string;
@@ -437,7 +449,7 @@ const CosPmMonitor: React.FC = () => {
   );
 };
 
-const AgentStatusPage: React.FC = () => {
+const AgentStatus: React.FC = () => {
   return (
     <div className="main-content">
       <div className="page-header">
@@ -497,7 +509,7 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<Overview />} />
           <Route path="/cos-pm-monitor" element={<CosPmMonitor />} />
-          <Route path="/agent-status" element={<AgentStatusPage />} />
+          <Route path="/agent-status" element={<AgentStatus />} />
           <Route path="/idea-pipeline" element={<IdeaPipeline />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/executive-view" element={<ExecutiveView />} />
