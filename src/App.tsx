@@ -33,6 +33,18 @@ interface CosPmStatus {
   last_communication: string;
 }
 
+// API Response Types
+interface ApiIdea {
+  id: number;
+  content: string;
+  final_decision: string;
+  agent_name: string;
+  created_at: string;
+  ice_plus_score: number;
+  weighted_matrix_score: number;
+  profit_tier: number;
+}
+
 interface Idea {
   id: string;
   title: string;
@@ -249,7 +261,7 @@ const Overview: React.FC = () => {
           const ideasData = await ideasResponse.json();
           
           // Transform API data
-          const transformedIdeas = (ideasData.ideas || []).map((idea: any) => ({
+          const transformedIdeas = (ideasData.ideas || []).map((idea: ApiIdea) => ({
             id: idea.id.toString(),
             title: idea.content.substring(0, 100) + '...',
             content: idea.content,
@@ -265,10 +277,10 @@ const Overview: React.FC = () => {
           
           // Calculate metrics from real data
           const totalIdeas = transformedIdeas.length;
-          const fastTrackIdeas = transformedIdeas.filter(idea => idea.decision === 'fast_track').length;
-          const approvedIdeas = transformedIdeas.filter(idea => idea.decision === 'approved').length;
-          const reviewIdeas = transformedIdeas.filter(idea => idea.decision === 'review').length;
-          const archiveIdeas = transformedIdeas.filter(idea => idea.decision === 'archive').length;
+          const fastTrackIdeas = transformedIdeas.filter((idea: Idea) => idea.decision === 'fast_track').length;
+          const approvedIdeas = transformedIdeas.filter((idea: Idea) => idea.decision === 'approved').length;
+          const reviewIdeas = transformedIdeas.filter((idea: Idea) => idea.decision === 'review').length;
+          const archiveIdeas = transformedIdeas.filter((idea: Idea) => idea.decision === 'archive').length;
           
           setMetrics({
             TOTAL_IDEAS: totalIdeas,
@@ -466,7 +478,7 @@ const Overview: React.FC = () => {
           </Link>
         </div>
         <div className="activity-list">
-          {ideas.filter(idea => idea.decision === 'fast_track').slice(0, 3).map((idea) => (
+          {ideas.filter((idea: Idea) => idea.decision === 'fast_track').slice(0, 3).map((idea) => (
             <div key={idea.id} className="activity-item">
               <div className="activity-icon">
                 <Zap size={16} className="fast-track-icon" />
@@ -773,7 +785,7 @@ const IdeaPipeline: React.FC = () => {
         const data = await response.json();
         
         // Transform API data to match dashboard format
-        const transformedIdeas = (data.ideas || []).map((idea: any) => ({
+        const transformedIdeas = (data.ideas || []).map((idea: ApiIdea) => ({
           id: idea.id.toString(),
           title: idea.content.substring(0, 100) + '...',
           content: idea.content,
@@ -805,7 +817,7 @@ const IdeaPipeline: React.FC = () => {
 
     // Apply search filter
     if (searchTerm) {
-      filtered = filtered.filter(idea => 
+      filtered = filtered.filter((idea: Idea) => 
         idea.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         idea.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
         idea.agent.toLowerCase().includes(searchTerm.toLowerCase())
@@ -814,12 +826,12 @@ const IdeaPipeline: React.FC = () => {
 
     // Apply decision filter
     if (filterDecision !== 'all') {
-      filtered = filtered.filter(idea => idea.decision === filterDecision);
+      filtered = filtered.filter((idea: Idea) => idea.decision === filterDecision);
     }
 
     // Apply agent filter
     if (filterAgent !== 'all') {
-      filtered = filtered.filter(idea => idea.agent === filterAgent);
+      filtered = filtered.filter((idea: Idea) => idea.agent === filterAgent);
     }
 
     // Apply sorting
@@ -938,11 +950,11 @@ const IdeaPipeline: React.FC = () => {
           <p>Total Ideas</p>
         </div>
         <div className="stat-card">
-          <h3>{filteredIdeas.filter(idea => idea.decision === 'fast_track').length}</h3>
+          <h3>{filteredIdeas.filter((idea: Idea) => idea.decision === 'fast_track').length}</h3>
           <p>Fast Track</p>
         </div>
-        <div className="stat-card">
-          <h3>{filteredIdeas.filter(idea => idea.decision === 'approved').length}</h3>
+        <div className="metric-card">
+          <h3>{filteredIdeas.filter((idea: Idea) => idea.decision === 'approved').length}</h3>
           <p>Approved</p>
         </div>
         <div className="stat-card">
