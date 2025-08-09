@@ -34,20 +34,22 @@ interface CosPmStatus {
 }
 
 interface Idea {
-  id: number;
-  concept: string;
-  profit_tier: number;
-  ice_score: number;
+  id: string;
+  title: string;
+  content: string;
   decision: string;
-  fast_track: boolean;
   agent: string;
   created_at: string;
+  ice_plus_score: number;
+  matrix_score: number;
+  profit_tier: number;
   market_trend?: string;
   youtube_channel?: string;
 }
 
 // API Configuration
 const API_BASE_URL = 'https://ai-staff-api-gateway.ambitioussea-9ca2abb1.centralus.azurecontainerapps.io';
+const IDEAS_API_URL = 'https://vgh0i1c55mvk.manus.space/api';
 const AZURE_FUNCTIONS_API_BASE = 'https://ai-staff-functions.azurewebsites.net/api';
 
 // Ideation Agents Configuration
@@ -132,278 +134,6 @@ const IDEATION_AGENTS: IdeationAgent[] = [
     endpoint: `${AZURE_FUNCTIONS_API_BASE}/waddle-feasibility-analyst`,
     description: 'On-demand feasibility optimization',
     expected_fast_track_rate: '18%'
-  }
-];
-
-// Updated metrics to match realistic mock data
-const UPDATED_METRICS = {
-  TOTAL_IDEAS: 25,
-  FAST_TRACK_IDEAS: 8,
-  TOTAL_AGENTS: 10,
-  HEALTHY_AGENTS: 10
-};
-
-// Mock ideas data for demonstration
-const MOCK_IDEAS: Idea[] = [
-  {
-    id: 1,
-    concept: "Machine learning model marketplace for non-technical users",
-    profit_tier: 1,
-    ice_score: 9.87,
-    decision: "Fast Track",
-    fast_track: true,
-    agent: "Hoddle Trend Scout",
-    created_at: "2025-08-09T10:30:00Z",
-    market_trend: "ESG compliance importance"
-  },
-  {
-    id: 2,
-    concept: "Multi-platform content distribution solution for creators",
-    profit_tier: 2,
-    ice_score: 8.67,
-    decision: "Fast Track",
-    fast_track: true,
-    agent: "Waddle Trend Scout",
-    created_at: "2025-08-09T09:15:00Z",
-    youtube_channel: "TechStartup Hub (2.3M subscribers)"
-  },
-  {
-    id: 3,
-    concept: "Educational video analytics platform",
-    profit_tier: 1,
-    ice_score: 7.69,
-    decision: "Fast Track",
-    fast_track: true,
-    agent: "Waddle Trend Scout",
-    created_at: "2025-08-09T06:10:00Z",
-    youtube_channel: "TechStartup Hub"
-  },
-  {
-    id: 4,
-    concept: "AI-powered customer service automation",
-    profit_tier: 1,
-    ice_score: 8.45,
-    decision: "Fast Track",
-    fast_track: true,
-    agent: "Hoddle Gap Finder",
-    created_at: "2025-08-08T15:20:00Z",
-    market_trend: "Customer experience optimization"
-  },
-  {
-    id: 5,
-    concept: "Blockchain-based supply chain transparency tool",
-    profit_tier: 1,
-    ice_score: 7.92,
-    decision: "Fast Track",
-    fast_track: true,
-    agent: "Waddle Gap Finder",
-    created_at: "2025-08-08T14:45:00Z",
-    youtube_channel: "Supply Chain Insights"
-  },
-  {
-    id: 6,
-    concept: "Virtual reality training platform for healthcare",
-    profit_tier: 1,
-    ice_score: 8.23,
-    decision: "Fast Track",
-    fast_track: true,
-    agent: "Hoddle Feasibility Analyst",
-    created_at: "2025-08-08T13:30:00Z",
-    market_trend: "Healthcare digitization"
-  },
-  {
-    id: 7,
-    concept: "Smart home energy optimization system",
-    profit_tier: 2,
-    ice_score: 7.56,
-    decision: "Fast Track",
-    fast_track: true,
-    agent: "Waddle Concept Pitcher",
-    created_at: "2025-08-08T12:15:00Z",
-    youtube_channel: "Smart Home Tech"
-  },
-  {
-    id: 8,
-    concept: "Personalized nutrition planning app",
-    profit_tier: 2,
-    ice_score: 8.01,
-    decision: "Fast Track",
-    fast_track: true,
-    agent: "Hoddle Trend Scout",
-    created_at: "2025-08-08T11:00:00Z",
-    market_trend: "Health and wellness focus"
-  },
-  {
-    id: 9,
-    concept: "Process automation solution for small businesses",
-    profit_tier: 1,
-    ice_score: 6.91,
-    decision: "Approved",
-    fast_track: false,
-    agent: "Hoddle Concept Pitcher",
-    created_at: "2025-08-09T08:45:00Z"
-  },
-  {
-    id: 10,
-    concept: "Team building platform for remote workers",
-    profit_tier: 2,
-    ice_score: 6.31,
-    decision: "Approved",
-    fast_track: false,
-    agent: "Hoddle Concept Pitcher",
-    created_at: "2025-08-09T07:20:00Z"
-  },
-  {
-    id: 11,
-    concept: "Digital marketplace for local artisans",
-    profit_tier: 2,
-    ice_score: 5.87,
-    decision: "Approved",
-    fast_track: false,
-    agent: "Waddle Feasibility Analyst",
-    created_at: "2025-08-08T16:30:00Z"
-  },
-  {
-    id: 12,
-    concept: "Subscription box for eco-friendly products",
-    profit_tier: 2,
-    ice_score: 6.45,
-    decision: "Approved",
-    fast_track: false,
-    agent: "Hoddle Gap Finder",
-    created_at: "2025-08-08T10:45:00Z"
-  },
-  {
-    id: 13,
-    concept: "Online language learning platform for professionals",
-    profit_tier: 2,
-    ice_score: 6.78,
-    decision: "Approved",
-    fast_track: false,
-    agent: "Waddle Trend Scout",
-    created_at: "2025-08-08T09:30:00Z",
-    youtube_channel: "Professional Development"
-  },
-  {
-    id: 14,
-    concept: "Social media management tool for small businesses",
-    profit_tier: 2,
-    ice_score: 5.92,
-    decision: "Approved",
-    fast_track: false,
-    agent: "Hoddle Feasibility Analyst",
-    created_at: "2025-08-08T08:15:00Z"
-  },
-  {
-    id: 15,
-    concept: "Virtual event hosting platform",
-    profit_tier: 2,
-    ice_score: 6.23,
-    decision: "Approved",
-    fast_track: false,
-    agent: "Waddle Gap Finder",
-    created_at: "2025-08-08T07:00:00Z"
-  },
-  {
-    id: 16,
-    concept: "Pet care scheduling and tracking app",
-    profit_tier: 3,
-    ice_score: 4.56,
-    decision: "Review",
-    fast_track: false,
-    agent: "Hoddle Concept Pitcher",
-    created_at: "2025-08-07T18:30:00Z"
-  },
-  {
-    id: 17,
-    concept: "Cryptocurrency portfolio tracker",
-    profit_tier: 3,
-    ice_score: 4.23,
-    decision: "Review",
-    fast_track: false,
-    agent: "Waddle Concept Pitcher",
-    created_at: "2025-08-07T17:15:00Z"
-  },
-  {
-    id: 18,
-    concept: "Recipe sharing social network",
-    profit_tier: 3,
-    ice_score: 3.89,
-    decision: "Review",
-    fast_track: false,
-    agent: "Hoddle Trend Scout",
-    created_at: "2025-08-07T16:00:00Z"
-  },
-  {
-    id: 19,
-    concept: "Local weather prediction app",
-    profit_tier: 3,
-    ice_score: 3.45,
-    decision: "Review",
-    fast_track: false,
-    agent: "Waddle Feasibility Analyst",
-    created_at: "2025-08-07T15:45:00Z"
-  },
-  {
-    id: 20,
-    concept: "Digital business card platform",
-    profit_tier: 3,
-    ice_score: 4.12,
-    decision: "Review",
-    fast_track: false,
-    agent: "Hoddle Gap Finder",
-    created_at: "2025-08-07T14:30:00Z"
-  },
-  {
-    id: 21,
-    concept: "Vintage clothing resale marketplace",
-    profit_tier: 3,
-    ice_score: 2.87,
-    decision: "Archive",
-    fast_track: false,
-    agent: "Waddle Trend Scout",
-    created_at: "2025-08-07T13:15:00Z",
-    youtube_channel: "Fashion Trends"
-  },
-  {
-    id: 22,
-    concept: "Basic todo list application",
-    profit_tier: 4,
-    ice_score: 2.34,
-    decision: "Archive",
-    fast_track: false,
-    agent: "Hoddle Concept Pitcher",
-    created_at: "2025-08-07T12:00:00Z"
-  },
-  {
-    id: 23,
-    concept: "Simple calculator app",
-    profit_tier: 4,
-    ice_score: 1.98,
-    decision: "Archive",
-    fast_track: false,
-    agent: "Waddle Concept Pitcher",
-    created_at: "2025-08-07T11:45:00Z"
-  },
-  {
-    id: 24,
-    concept: "Generic note-taking app",
-    profit_tier: 4,
-    ice_score: 2.12,
-    decision: "Archive",
-    fast_track: false,
-    agent: "Hoddle Feasibility Analyst",
-    created_at: "2025-08-07T10:30:00Z"
-  },
-  {
-    id: 25,
-    concept: "Basic email client",
-    profit_tier: 4,
-    ice_score: 1.76,
-    decision: "Archive",
-    fast_track: false,
-    agent: "Waddle Gap Finder",
-    created_at: "2025-08-07T09:15:00Z"
   }
 ];
 
@@ -496,6 +226,16 @@ const fetchIdeationAgentsHealth = async () => {
 
 const Overview: React.FC = () => {
   const [cosPmStatus, setCosPmStatus] = useState<CosPmStatus | null>(null);
+  const [ideas, setIdeas] = useState<Idea[]>([]);
+  const [metrics, setMetrics] = useState({
+    TOTAL_IDEAS: 0,
+    FAST_TRACK_IDEAS: 0,
+    APPROVED_IDEAS: 0,
+    REVIEW_IDEAS: 0,
+    ARCHIVE_IDEAS: 0,
+    TOTAL_AGENTS: 10,
+    HEALTHY_AGENTS: 10
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -503,6 +243,44 @@ const Overview: React.FC = () => {
       setLoading(true);
       
       try {
+        // Fetch ideas data
+        const ideasResponse = await fetch(`${IDEAS_API_URL}/ideas`);
+        if (ideasResponse.ok) {
+          const ideasData = await ideasResponse.json();
+          
+          // Transform API data
+          const transformedIdeas = (ideasData.ideas || []).map((idea: any) => ({
+            id: idea.id.toString(),
+            title: idea.content.substring(0, 100) + '...',
+            content: idea.content,
+            decision: idea.final_decision,
+            agent: idea.agent_name,
+            created_at: idea.created_at,
+            ice_plus_score: idea.ice_plus_score || 0,
+            matrix_score: idea.weighted_matrix_score || 0,
+            profit_tier: idea.profit_tier || 1
+          }));
+          
+          setIdeas(transformedIdeas);
+          
+          // Calculate metrics from real data
+          const totalIdeas = transformedIdeas.length;
+          const fastTrackIdeas = transformedIdeas.filter(idea => idea.decision === 'fast_track').length;
+          const approvedIdeas = transformedIdeas.filter(idea => idea.decision === 'approved').length;
+          const reviewIdeas = transformedIdeas.filter(idea => idea.decision === 'review').length;
+          const archiveIdeas = transformedIdeas.filter(idea => idea.decision === 'archive').length;
+          
+          setMetrics({
+            TOTAL_IDEAS: totalIdeas,
+            FAST_TRACK_IDEAS: fastTrackIdeas,
+            APPROVED_IDEAS: approvedIdeas,
+            REVIEW_IDEAS: reviewIdeas,
+            ARCHIVE_IDEAS: archiveIdeas,
+            TOTAL_AGENTS: 10,
+            HEALTHY_AGENTS: 10
+          });
+        }
+        
         // Fetch existing CoS/PM data
         const cosPmResponse = await fetch(`${API_BASE_URL}/status`);
         if (cosPmResponse.ok) {
@@ -545,10 +323,10 @@ const Overview: React.FC = () => {
 
   // Updated decision distribution data
   const decisionData = [
-    { name: 'Fast Track', value: UPDATED_METRICS.FAST_TRACK_IDEAS, color: '#10B981' },
-    { name: 'Approved', value: 85, color: '#3B82F6' },
-    { name: 'Review', value: 120, color: '#F59E0B' },
-    { name: 'Archive', value: 27, color: '#6B7280' }
+    { name: 'Fast Track', value: metrics.FAST_TRACK_IDEAS, color: '#10B981' },
+    { name: 'Approved', value: metrics.APPROVED_IDEAS, color: '#3B82F6' },
+    { name: 'Review', value: metrics.REVIEW_IDEAS, color: '#F59E0B' },
+    { name: 'Archive', value: metrics.ARCHIVE_IDEAS, color: '#6B7280' }
   ];
 
   return (
@@ -591,7 +369,7 @@ const Overview: React.FC = () => {
             <div className="metric-change positive">+8</div>
           </div>
           <div className="metric-content">
-            <h3 className="metric-value">{UPDATED_METRICS.TOTAL_AGENTS}</h3>
+            <h3 className="metric-value">{metrics.TOTAL_AGENTS}</h3>
             <p className="metric-label">Total Agents</p>
           </div>
         </div>
@@ -602,7 +380,7 @@ const Overview: React.FC = () => {
             <div className="metric-change positive">100%</div>
           </div>
           <div className="metric-content">
-            <h3 className="metric-value">{UPDATED_METRICS.HEALTHY_AGENTS}</h3>
+            <h3 className="metric-value">{metrics.HEALTHY_AGENTS}</h3>
             <p className="metric-label">Healthy Agents</p>
           </div>
         </div>
@@ -610,10 +388,10 @@ const Overview: React.FC = () => {
         <div className="metric-card">
           <div className="metric-header">
             <Lightbulb size={24} className="metric-icon warning" />
-            <div className="metric-change positive">+27</div>
+            <div className="metric-change positive">+{metrics.TOTAL_IDEAS}</div>
           </div>
           <div className="metric-content">
-            <h3 className="metric-value">{UPDATED_METRICS.TOTAL_IDEAS}</h3>
+            <h3 className="metric-value">{metrics.TOTAL_IDEAS}</h3>
             <p className="metric-label">Total Ideas</p>
           </div>
         </div>
@@ -621,10 +399,10 @@ const Overview: React.FC = () => {
         <div className="metric-card">
           <div className="metric-header">
             <Zap size={24} className="metric-icon danger" />
-            <div className="metric-change positive">+9</div>
+            <div className="metric-change positive">+{metrics.FAST_TRACK_IDEAS}</div>
           </div>
           <div className="metric-content">
-            <h3 className="metric-value">{UPDATED_METRICS.FAST_TRACK_IDEAS}</h3>
+            <h3 className="metric-value">{metrics.FAST_TRACK_IDEAS}</h3>
             <p className="metric-label">Fast Track Ideas</p>
           </div>
         </div>
@@ -688,15 +466,15 @@ const Overview: React.FC = () => {
           </Link>
         </div>
         <div className="activity-list">
-          {MOCK_IDEAS.filter(idea => idea.fast_track).slice(0, 3).map((idea) => (
+          {ideas.filter(idea => idea.decision === 'fast_track').slice(0, 3).map((idea) => (
             <div key={idea.id} className="activity-item">
               <div className="activity-icon">
                 <Zap size={16} className="fast-track-icon" />
               </div>
               <div className="activity-content">
-                <h4>{idea.concept}</h4>
+                <h4>{idea.title}</h4>
                 <p className="activity-meta">
-                  {idea.agent} • ICE+ Score: {idea.ice_score} • {new Date(idea.created_at).toLocaleDateString()}
+                  {idea.agent} • ICE+ Score: {idea.ice_plus_score} • {new Date(idea.created_at).toLocaleDateString()}
                 </p>
               </div>
               <div className="activity-status fast-track">
@@ -978,12 +756,49 @@ const AgentStatusPage: React.FC = () => {
 };
 
 const IdeaPipeline: React.FC = () => {
-  const [ideas] = useState<Idea[]>(MOCK_IDEAS);
-  const [filteredIdeas, setFilteredIdeas] = useState<Idea[]>(MOCK_IDEAS);
+  const [ideas, setIdeas] = useState<Idea[]>([]);
+  const [filteredIdeas, setFilteredIdeas] = useState<Idea[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDecision, setFilterDecision] = useState('all');
   const [filterAgent, setFilterAgent] = useState('all');
   const [sortBy, setSortBy] = useState('created_at');
+  const [loading, setLoading] = useState(true);
+
+  // Fetch ideas from API
+  useEffect(() => {
+    const fetchIdeas = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${IDEAS_API_URL}/ideas`);
+        const data = await response.json();
+        
+        // Transform API data to match dashboard format
+        const transformedIdeas = (data.ideas || []).map((idea: any) => ({
+          id: idea.id.toString(),
+          title: idea.content.substring(0, 100) + '...',
+          content: idea.content,
+          decision: idea.final_decision,
+          agent: idea.agent_name,
+          created_at: idea.created_at,
+          ice_plus_score: idea.ice_plus_score || 0,
+          matrix_score: idea.weighted_matrix_score || 0,
+          profit_tier: idea.profit_tier || 1
+        }));
+        
+        setIdeas(transformedIdeas);
+        setFilteredIdeas(transformedIdeas);
+      } catch (error) {
+        console.error('Failed to fetch ideas:', error);
+        // Fallback to empty array on error
+        setIdeas([]);
+        setFilteredIdeas([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchIdeas();
+  }, []);
 
   useEffect(() => {
     let filtered = ideas;
@@ -991,7 +806,8 @@ const IdeaPipeline: React.FC = () => {
     // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(idea => 
-        idea.concept.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        idea.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        idea.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
         idea.agent.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -1010,7 +826,7 @@ const IdeaPipeline: React.FC = () => {
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'ice_score':
-          return b.ice_score - a.ice_score;
+          return b.ice_plus_score - a.ice_plus_score;
         case 'profit_tier':
           return a.profit_tier - b.profit_tier;
         case 'created_at':
@@ -1040,6 +856,17 @@ const IdeaPipeline: React.FC = () => {
       default: return 'Unknown';
     }
   };
+
+  if (loading) {
+    return (
+      <div className="main-content">
+        <div className="loading-container">
+          <RefreshCw className="loading-spinner" size={24} />
+          <p>Loading ideas data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="main-content">
@@ -1111,15 +938,15 @@ const IdeaPipeline: React.FC = () => {
           <p>Total Ideas</p>
         </div>
         <div className="stat-card">
-          <h3>{filteredIdeas.filter(idea => idea.fast_track).length}</h3>
+          <h3>{filteredIdeas.filter(idea => idea.decision === 'fast_track').length}</h3>
           <p>Fast Track</p>
         </div>
         <div className="stat-card">
-          <h3>{filteredIdeas.filter(idea => idea.decision === 'Approved').length}</h3>
+          <h3>{filteredIdeas.filter(idea => idea.decision === 'approved').length}</h3>
           <p>Approved</p>
         </div>
         <div className="stat-card">
-          <h3>{(filteredIdeas.reduce((sum, idea) => sum + idea.ice_score, 0) / filteredIdeas.length || 0).toFixed(1)}</h3>
+          <h3>{(filteredIdeas.reduce((sum, idea) => sum + idea.ice_plus_score, 0) / filteredIdeas.length || 0).toFixed(1)}</h3>
           <p>Avg ICE+ Score</p>
         </div>
       </div>
@@ -1130,8 +957,8 @@ const IdeaPipeline: React.FC = () => {
           <div key={idea.id} className="idea-card">
             <div className="idea-header">
               <div className="idea-title">
-                <h4>{idea.concept}</h4>
-                {idea.fast_track && <Zap size={16} className="fast-track-icon" />}
+                <h4>{idea.title}</h4>
+                {idea.decision === 'fast_track' && <Zap size={16} className="fast-track-icon" />}
               </div>
               <div className={`decision-badge ${getDecisionColor(idea.decision)}`}>
                 {idea.decision}
@@ -1143,7 +970,7 @@ const IdeaPipeline: React.FC = () => {
                 <strong>Agent:</strong> {idea.agent}
               </span>
               <span className="meta-item">
-                <strong>ICE+ Score:</strong> {idea.ice_score}
+                <strong>ICE+ Score:</strong> {idea.ice_plus_score}
               </span>
               <span className="meta-item">
                 <strong>Profit Tier:</strong> {getProfitTierLabel(idea.profit_tier)}
