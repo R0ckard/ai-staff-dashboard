@@ -135,10 +135,10 @@ const IDEATION_AGENTS: IdeationAgent[] = [
   }
 ];
 
-// Updated metrics to include new ideas from testing
+// Updated metrics to match realistic mock data
 const UPDATED_METRICS = {
-  TOTAL_IDEAS: 252,
-  FAST_TRACK_IDEAS: 20,
+  TOTAL_IDEAS: 25,
+  FAST_TRACK_IDEAS: 8,
   TOTAL_AGENTS: 10,
   HEALTHY_AGENTS: 10
 };
@@ -169,26 +169,6 @@ const MOCK_IDEAS: Idea[] = [
   },
   {
     id: 3,
-    concept: "Process automation solution for small businesses",
-    profit_tier: 1,
-    ice_score: 3.91,
-    decision: "Approved",
-    fast_track: false,
-    agent: "Hoddle Concept Pitcher",
-    created_at: "2025-08-09T08:45:00Z"
-  },
-  {
-    id: 4,
-    concept: "Team building platform for remote workers",
-    profit_tier: 2,
-    ice_score: 3.31,
-    decision: "Approved",
-    fast_track: false,
-    agent: "Hoddle Concept Pitcher",
-    created_at: "2025-08-09T07:20:00Z"
-  },
-  {
-    id: 5,
     concept: "Educational video analytics platform",
     profit_tier: 1,
     ice_score: 7.69,
@@ -197,6 +177,233 @@ const MOCK_IDEAS: Idea[] = [
     agent: "Waddle Trend Scout",
     created_at: "2025-08-09T06:10:00Z",
     youtube_channel: "TechStartup Hub"
+  },
+  {
+    id: 4,
+    concept: "AI-powered customer service automation",
+    profit_tier: 1,
+    ice_score: 8.45,
+    decision: "Fast Track",
+    fast_track: true,
+    agent: "Hoddle Gap Finder",
+    created_at: "2025-08-08T15:20:00Z",
+    market_trend: "Customer experience optimization"
+  },
+  {
+    id: 5,
+    concept: "Blockchain-based supply chain transparency tool",
+    profit_tier: 1,
+    ice_score: 7.92,
+    decision: "Fast Track",
+    fast_track: true,
+    agent: "Waddle Gap Finder",
+    created_at: "2025-08-08T14:45:00Z",
+    youtube_channel: "Supply Chain Insights"
+  },
+  {
+    id: 6,
+    concept: "Virtual reality training platform for healthcare",
+    profit_tier: 1,
+    ice_score: 8.23,
+    decision: "Fast Track",
+    fast_track: true,
+    agent: "Hoddle Feasibility Analyst",
+    created_at: "2025-08-08T13:30:00Z",
+    market_trend: "Healthcare digitization"
+  },
+  {
+    id: 7,
+    concept: "Smart home energy optimization system",
+    profit_tier: 2,
+    ice_score: 7.56,
+    decision: "Fast Track",
+    fast_track: true,
+    agent: "Waddle Concept Pitcher",
+    created_at: "2025-08-08T12:15:00Z",
+    youtube_channel: "Smart Home Tech"
+  },
+  {
+    id: 8,
+    concept: "Personalized nutrition planning app",
+    profit_tier: 2,
+    ice_score: 8.01,
+    decision: "Fast Track",
+    fast_track: true,
+    agent: "Hoddle Trend Scout",
+    created_at: "2025-08-08T11:00:00Z",
+    market_trend: "Health and wellness focus"
+  },
+  {
+    id: 9,
+    concept: "Process automation solution for small businesses",
+    profit_tier: 1,
+    ice_score: 6.91,
+    decision: "Approved",
+    fast_track: false,
+    agent: "Hoddle Concept Pitcher",
+    created_at: "2025-08-09T08:45:00Z"
+  },
+  {
+    id: 10,
+    concept: "Team building platform for remote workers",
+    profit_tier: 2,
+    ice_score: 6.31,
+    decision: "Approved",
+    fast_track: false,
+    agent: "Hoddle Concept Pitcher",
+    created_at: "2025-08-09T07:20:00Z"
+  },
+  {
+    id: 11,
+    concept: "Digital marketplace for local artisans",
+    profit_tier: 2,
+    ice_score: 5.87,
+    decision: "Approved",
+    fast_track: false,
+    agent: "Waddle Feasibility Analyst",
+    created_at: "2025-08-08T16:30:00Z"
+  },
+  {
+    id: 12,
+    concept: "Subscription box for eco-friendly products",
+    profit_tier: 2,
+    ice_score: 6.45,
+    decision: "Approved",
+    fast_track: false,
+    agent: "Hoddle Gap Finder",
+    created_at: "2025-08-08T10:45:00Z"
+  },
+  {
+    id: 13,
+    concept: "Online language learning platform for professionals",
+    profit_tier: 2,
+    ice_score: 6.78,
+    decision: "Approved",
+    fast_track: false,
+    agent: "Waddle Trend Scout",
+    created_at: "2025-08-08T09:30:00Z",
+    youtube_channel: "Professional Development"
+  },
+  {
+    id: 14,
+    concept: "Social media management tool for small businesses",
+    profit_tier: 2,
+    ice_score: 5.92,
+    decision: "Approved",
+    fast_track: false,
+    agent: "Hoddle Feasibility Analyst",
+    created_at: "2025-08-08T08:15:00Z"
+  },
+  {
+    id: 15,
+    concept: "Virtual event hosting platform",
+    profit_tier: 2,
+    ice_score: 6.23,
+    decision: "Approved",
+    fast_track: false,
+    agent: "Waddle Gap Finder",
+    created_at: "2025-08-08T07:00:00Z"
+  },
+  {
+    id: 16,
+    concept: "Pet care scheduling and tracking app",
+    profit_tier: 3,
+    ice_score: 4.56,
+    decision: "Review",
+    fast_track: false,
+    agent: "Hoddle Concept Pitcher",
+    created_at: "2025-08-07T18:30:00Z"
+  },
+  {
+    id: 17,
+    concept: "Cryptocurrency portfolio tracker",
+    profit_tier: 3,
+    ice_score: 4.23,
+    decision: "Review",
+    fast_track: false,
+    agent: "Waddle Concept Pitcher",
+    created_at: "2025-08-07T17:15:00Z"
+  },
+  {
+    id: 18,
+    concept: "Recipe sharing social network",
+    profit_tier: 3,
+    ice_score: 3.89,
+    decision: "Review",
+    fast_track: false,
+    agent: "Hoddle Trend Scout",
+    created_at: "2025-08-07T16:00:00Z"
+  },
+  {
+    id: 19,
+    concept: "Local weather prediction app",
+    profit_tier: 3,
+    ice_score: 3.45,
+    decision: "Review",
+    fast_track: false,
+    agent: "Waddle Feasibility Analyst",
+    created_at: "2025-08-07T15:45:00Z"
+  },
+  {
+    id: 20,
+    concept: "Digital business card platform",
+    profit_tier: 3,
+    ice_score: 4.12,
+    decision: "Review",
+    fast_track: false,
+    agent: "Hoddle Gap Finder",
+    created_at: "2025-08-07T14:30:00Z"
+  },
+  {
+    id: 21,
+    concept: "Vintage clothing resale marketplace",
+    profit_tier: 3,
+    ice_score: 2.87,
+    decision: "Archive",
+    fast_track: false,
+    agent: "Waddle Trend Scout",
+    created_at: "2025-08-07T13:15:00Z",
+    youtube_channel: "Fashion Trends"
+  },
+  {
+    id: 22,
+    concept: "Basic todo list application",
+    profit_tier: 4,
+    ice_score: 2.34,
+    decision: "Archive",
+    fast_track: false,
+    agent: "Hoddle Concept Pitcher",
+    created_at: "2025-08-07T12:00:00Z"
+  },
+  {
+    id: 23,
+    concept: "Simple calculator app",
+    profit_tier: 4,
+    ice_score: 1.98,
+    decision: "Archive",
+    fast_track: false,
+    agent: "Waddle Concept Pitcher",
+    created_at: "2025-08-07T11:45:00Z"
+  },
+  {
+    id: 24,
+    concept: "Generic note-taking app",
+    profit_tier: 4,
+    ice_score: 2.12,
+    decision: "Archive",
+    fast_track: false,
+    agent: "Hoddle Feasibility Analyst",
+    created_at: "2025-08-07T10:30:00Z"
+  },
+  {
+    id: 25,
+    concept: "Basic email client",
+    profit_tier: 4,
+    ice_score: 1.76,
+    decision: "Archive",
+    fast_track: false,
+    agent: "Waddle Gap Finder",
+    created_at: "2025-08-07T09:15:00Z"
   }
 ];
 
