@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Home, Activity, Lightbulb, Users, TrendingUp, Target, Zap, Brain, Search, Filter, RefreshCw, CheckCircle, Clock } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { Home, Activity, Lightbulb, Users, TrendingUp, Target, Zap, Brain, Search, Filter, RefreshCw, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import './App.css';
 
@@ -289,6 +289,7 @@ const fetchIdeationAgentsHealth = async () => {
 
 const Overview: React.FC = () => {
   const [cosPmStatus, setCosPmStatus] = useState<CosPmStatus | null>(null);
+  const [ideationHealth, setIdeationHealth] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -304,7 +305,8 @@ const Overview: React.FC = () => {
         }
         
         // Fetch ideation agents health
-        await fetchIdeationAgentsHealth();
+        const ideationData = await fetchIdeationAgentsHealth();
+        setIdeationHealth(ideationData);
         
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -771,7 +773,7 @@ const AgentStatusPage: React.FC = () => {
 };
 
 const IdeaPipeline: React.FC = () => {
-  const [ideas] = useState<Idea[]>(MOCK_IDEAS);
+  const [ideas, setIdeas] = useState<Idea[]>(MOCK_IDEAS);
   const [filteredIdeas, setFilteredIdeas] = useState<Idea[]>(MOCK_IDEAS);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDecision, setFilterDecision] = useState('all');
