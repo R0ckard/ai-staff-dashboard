@@ -1,3 +1,4 @@
+// FORCE DEPLOYMENT: 2025-08-10 01:28 AM - Critical API connection fix
 import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { Home, Activity, Lightbulb, Users, TrendingUp, Target, Zap, Brain, Search, Filter, RefreshCw, CheckCircle, AlertCircle, Clock } from 'lucide-react';
