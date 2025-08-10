@@ -48,6 +48,7 @@ interface Idea {
 
 // API Configuration
 const API_BASE_URL = 'https://ai-staff-api-gateway.ambitioussea-9ca2abb1.centralus.azurecontainerapps.io';
+const IDEAS_API_URL = 'https://5002-i3lmtwdcd2b6b4dj3nq9l-e2661bcb.manusvm.computer/api';
 const AZURE_FUNCTIONS_API_BASE = 'https://ai-staff-functions.azurewebsites.net/api';
 
 // Ideation Agents Configuration
@@ -290,6 +291,7 @@ const fetchIdeationAgentsHealth = async () => {
 const Overview: React.FC = () => {
   const [cosPmStatus, setCosPmStatus] = useState<CosPmStatus | null>(null);
   const [ideationHealth, setIdeationHealth] = useState<any>(null);
+  const [ideasStats, setIdeasStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -307,6 +309,13 @@ const Overview: React.FC = () => {
         // Fetch ideation agents health
         const ideationData = await fetchIdeationAgentsHealth();
         setIdeationHealth(ideationData);
+        
+        // Fetch ideas statistics
+        const ideasResponse = await fetch(`${IDEAS_API_URL}/stats`);
+        if (ideasResponse.ok) {
+          const ideasData = await ideasResponse.json();
+          setIdeasStats(ideasData);
+        }
         
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -340,10 +349,8 @@ const Overview: React.FC = () => {
 
   // Updated decision distribution data
   const decisionData = [
-    { name: 'Fast Track', value: UPDATED_METRICS.FAST_TRACK_IDEAS, color: '#10B981' },
-    { name: 'Approved', value: 85, color: '#3B82F6' },
-    { name: 'Review', value: 120, color: '#F59E0B' },
-    { name: 'Archive', value: 27, color: '#6B7280' }
+    { name: 'Fast Track', value: ideasStats?.decisions?.fast_track || 0, color: '#10B981' },
+    { name: 'Archive', value: ideasStats?.decisions?.archive || 0, color: '#6B7280' }
   ];
 
   return (
@@ -386,7 +393,7 @@ const Overview: React.FC = () => {
             <div className="metric-change positive">+8</div>
           </div>
           <div className="metric-content">
-            <h3 className="metric-value">{UPDATED_METRICS.TOTAL_AGENTS}</h3>
+            <h3 className="metric-value">{ideationHealth?.total_agents || 10}</h3>
             <p className="metric-label">Total Agents</p>
           </div>
         </div>
@@ -397,7 +404,7 @@ const Overview: React.FC = () => {
             <div className="metric-change positive">100%</div>
           </div>
           <div className="metric-content">
-            <h3 className="metric-value">{UPDATED_METRICS.HEALTHY_AGENTS}</h3>
+            <h3 className="metric-value">{ideationHealth?.total_agents || 10}</h3>
             <p className="metric-label">Healthy Agents</p>
           </div>
         </div>
@@ -405,10 +412,10 @@ const Overview: React.FC = () => {
         <div className="metric-card">
           <div className="metric-header">
             <Lightbulb size={24} className="metric-icon warning" />
-            <div className="metric-change positive">+27</div>
+            <div className="metric-change positive">+{ideasStats?.total_ideas || 0}</div>
           </div>
           <div className="metric-content">
-            <h3 className="metric-value">{UPDATED_METRICS.TOTAL_IDEAS}</h3>
+            <h3 className="metric-value">{ideasStats?.total_ideas || 0}</h3>
             <p className="metric-label">Total Ideas</p>
           </div>
         </div>
@@ -416,10 +423,10 @@ const Overview: React.FC = () => {
         <div className="metric-card">
           <div className="metric-header">
             <Zap size={24} className="metric-icon danger" />
-            <div className="metric-change positive">+9</div>
+            <div className="metric-change positive">+{ideasStats?.decisions?.fast_track || 0}</div>
           </div>
           <div className="metric-content">
-            <h3 className="metric-value">{UPDATED_METRICS.FAST_TRACK_IDEAS}</h3>
+            <h3 className="metric-value">{ideasStats?.decisions?.fast_track || 0}</h3>
             <p className="metric-label">Fast Track Ideas</p>
           </div>
         </div>
@@ -773,35 +780,87 @@ const AgentStatusPage: React.FC = () => {
 };
 
 const IdeaPipeline: React.FC = () => {
-  const [ideas, setIdeas] = useState<Idea[]>(MOCK_IDEAS);
-  const [filteredIdeas, setFilteredIdeas] = useState<Idea[]>(MOCK_IDEAS);
+  const [ideas, setIdeas] = useState<Idea[]>([]);
+  const [filteredIdeas, setFilteredIdeas] = useState<Idea[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDecision, setFilterDecision] = useState('all');
   const [filterAgent, setFilterAgent] = useState('all');
   const [sortBy, setSortBy] = useState('created_at');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // Fetch ideas from production API with server-side filtering
+  useEffect(() => {
+    const fetchIdeas = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Build API URL with filters
+        let apiUrl = `${IDEAS_API_URL}/ideas`;
+        const params = new URLSearchParams();
+        
+        if (filterDecision !== 'all') {
+          // Map UI filter values to API values
+          const decisionMap: { [key: string]: string } = {
+            'Fast Track': 'fast_track',
+            'Approved': 'approved',
+            'Review': 'review',
+            'Archive': 'archive'
+          };
+          params.append('decision', decisionMap[filterDecision] || filterDecision.toLowerCase());
+        }
+        
+        if (filterAgent !== 'all') {
+          params.append('agent', filterAgent);
+        }
+        
+        if (searchTerm) {
+          params.append('search', searchTerm);
+        }
+        
+        if (params.toString()) {
+          apiUrl += '?' + params.toString();
+        }
+        
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Transform API data to match our interface
+        const transformedIdeas: Idea[] = data.ideas.map((item: any) => ({
+          id: item.id,
+          concept: item.content,
+          profit_tier: item.profit_tier,
+          ice_score: item.ice_plus_score,
+          decision: item.final_decision === 'fast_track' ? 'Fast Track' : 
+                   item.final_decision === 'approved' ? 'Approved' :
+                   item.final_decision === 'review' ? 'Review' : 'Archive',
+          fast_track: item.final_decision === 'fast_track',
+          agent: item.agent_name,
+          created_at: item.created_at
+        }));
+        
+        setIdeas(transformedIdeas);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching ideas:', err);
+        setError('Failed to load ideas. Please try again.');
+        setLoading(false);
+      }
+    };
+
+    fetchIdeas();
+  }, [filterDecision, filterAgent, searchTerm]); // Re-fetch when filters change
+
+  // Update filtered ideas when ideas change (server-side filtering handles most filtering)
   useEffect(() => {
     let filtered = ideas;
 
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter(idea => 
-        idea.concept.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        idea.agent.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Apply decision filter
-    if (filterDecision !== 'all') {
-      filtered = filtered.filter(idea => idea.decision === filterDecision);
-    }
-
-    // Apply agent filter
-    if (filterAgent !== 'all') {
-      filtered = filtered.filter(idea => idea.agent === filterAgent);
-    }
-
-    // Apply sorting
+    // Apply client-side sorting only (filtering is done server-side)
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'ice_score':
@@ -815,7 +874,7 @@ const IdeaPipeline: React.FC = () => {
     });
 
     setFilteredIdeas(filtered);
-  }, [ideas, searchTerm, filterDecision, filterAgent, sortBy]);
+  }, [ideas, sortBy]); // Only depend on ideas and sortBy since filtering is server-side
 
   const getDecisionColor = (decision: string) => {
     switch (decision) {

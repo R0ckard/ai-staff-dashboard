@@ -60,8 +60,8 @@ interface Idea {
 }
 
 // API Configuration
-const API_BASE_URL = 'https://ai-staff-api-gateway.ambitioussea-9ca2abb1.centralus.azurecontainerapps.io';
-const IDEAS_API_URL = 'https://vgh0i1c55mvk.manus.space/api';
+const API_BASE_URL = 'https://ai-staff-api-gateway.ambitioussea-9ca2abb1.centralus.azurecontainerapps.io/api';
+const IDEAS_API_URL = 'http://localhost:5001/api';
 const AZURE_FUNCTIONS_API_BASE = 'https://ai-staff-functions.azurewebsites.net/api';
 
 // Ideation Agents Configuration
