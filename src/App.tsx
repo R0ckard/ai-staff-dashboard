@@ -1,7 +1,7 @@
 // FORCE DEPLOYMENT: 2025-08-10 01:28 AM - Critical API connection fix
 import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { Home, Activity, Lightbulb, Users, TrendingUp, Target, Zap, Brain, Search, Filter, RefreshCw, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Home, Activity, Lightbulb, Users, TrendingUp, Target, Zap, Brain, Search, Filter, RefreshCw, CheckCircle, Clock } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import './App.css';
 
@@ -138,12 +138,7 @@ const IDEATION_AGENTS: IdeationAgent[] = [
 ];
 
 // Updated metrics to include new ideas from testing
-const UPDATED_METRICS = {
-  TOTAL_IDEAS: 252,
-  FAST_TRACK_IDEAS: 20,
-  TOTAL_AGENTS: 10,
-  HEALTHY_AGENTS: 10
-};
+// Metrics will be fetched from API
 
 // Mock ideas data for demonstration
 const MOCK_IDEAS: Idea[] = [
