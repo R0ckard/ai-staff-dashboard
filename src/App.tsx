@@ -849,11 +849,11 @@ const IdeaPipeline: React.FC = () => {
           concept: item.content,
           profit_tier: item.profit_tier,
           ice_score: item.ice_plus_score,
-          decision: item.decision === 'fast_track' ? 'Fast Track' : 
-                   item.decision === 'approved' ? 'Approved' :
-                   item.decision === 'review' ? 'Review' : 'Archive',
-          fast_track: item.decision === 'fast_track',
-          agent: item.agent,
+          decision: item.fast_track ? 'Fast Track' : 
+                   item.final_decision === 'approved' ? 'Approved' :
+                   item.final_decision === 'review' ? 'Review' : 'Archive',
+          fast_track: item.fast_track,
+          agent: item.agent_name,
           created_at: item.created_at
         }));
         
