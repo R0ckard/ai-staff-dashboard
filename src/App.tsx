@@ -814,6 +814,20 @@ const IdeaPipeline: React.FC = () => {
   const [sortBy, setSortBy] = useState('created_at');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expandedIdeas, setExpandedIdeas] = useState<Set<string>>(new Set());
+
+  // Toggle expand/collapse for an idea
+  const toggleIdeaExpansion = (ideaId: string) => {
+    setExpandedIdeas(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(ideaId)) {
+        newSet.delete(ideaId);
+      } else {
+        newSet.add(ideaId);
+      }
+      return newSet;
+    });
+  };
 
   // Fetch ideas from production API
   useEffect(() => {
@@ -1008,12 +1022,24 @@ const IdeaPipeline: React.FC = () => {
               </div>
             </div>
             
-            <div className="idea-content">
+            <div 
+              className="idea-content clickable" 
+              onClick={() => toggleIdeaExpansion(idea.id.toString())}
+              style={{ cursor: 'pointer' }}
+            >
               <div className="idea-snippet">
-                {idea.concept.length > 200 
-                  ? idea.concept.substring(0, 200) + '...' 
-                  : idea.concept}
+                {expandedIdeas.has(idea.id.toString()) 
+                  ? idea.concept 
+                  : (idea.concept.length > 200 
+                      ? idea.concept.substring(0, 200) + '...' 
+                      : idea.concept)
+                }
               </div>
+              {idea.concept.length > 200 && (
+                <div className="expand-indicator">
+                  {expandedIdeas.has(idea.id.toString()) ? '▲ Click to collapse' : '▼ Click to expand'}
+                </div>
+              )}
             </div>
             
             <div className="idea-meta">
