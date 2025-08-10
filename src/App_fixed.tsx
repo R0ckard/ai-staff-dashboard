@@ -1,523 +1,430 @@
-import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Home, Activity, Lightbulb, Users, TrendingUp, Target, Zap, Brain } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
-import './index.css';
 
-interface AgentStatus {
-  id: string;
-  name: string;
-  status: string;
-  port: number;
-  team: string;
-  role: string;
-  response_time: string;
-  last_update: string;
-  error: string | null;
-}
+// Use the production API that has all 461 ideas
+const PRODUCTION_API_URL = 'https://5002-i3lmtwdcd2b6b4dj3nq9l-e2661bcb.manusvm.computer/api';
 
-interface IdeationAgent {
-  id: string;
-  name: string;
-  team: string;
-  mode: string;
-  status: string;
-  endpoint: string;
-  description: string;
-  expected_fast_track_rate: string;
-  enhancement?: string;
-}
-
-interface CosPmStatus {
-  cos_status: string;
-  cos_ai_intelligence: string;
-  cos_pm_connectivity: string;
-  cos_cache_status: string;
-  cos_timestamp: string;
-  pm_total_projects: number;
-  pm_total_tasks: number;
-  pm_active_projects: number;
-  pm_completed_tasks: number;
-  pm_pending_tasks: number;
-  pm_high_priority_tasks: number;
-  communication_success_rate: number;
-  avg_response_time: number;
-  last_communication: string;
-}
-
-// API Configuration
-const API_BASE_URL = 'https://ai-staff-api-gateway.ambitioussea-9ca2abb1.centralus.azurecontainerapps.io';
-const AZURE_FUNCTIONS_API_BASE = 'https://ai-staff-functions.azurewebsites.net/api';
-
-// Ideation Agents Configuration
-const IDEATION_AGENTS: IdeationAgent[] = [
-  {
-    id: 'hoddle-concept-pitcher',
-    name: 'Hoddle Concept Pitcher',
-    team: 'Hoddle',
-    mode: 'continuous',
-    status: 'operational',
-    endpoint: `${AZURE_FUNCTIONS_API_BASE}/hoddle-concept-pitcher`,
-    description: 'Continuous business concept generation',
-    expected_fast_track_rate: '20%'
-  },
-  {
-    id: 'hoddle-trend-scout',
-    name: 'Hoddle Trend Scout',
-    team: 'Hoddle',
-    mode: 'continuous',
-    status: 'operational',
-    endpoint: `${AZURE_FUNCTIONS_API_BASE}/hoddle-trend-scout`,
-    description: 'Market trend analysis and opportunity identification',
-    expected_fast_track_rate: '80%'
-  },
-  {
-    id: 'hoddle-gap-finder',
-    name: 'Hoddle Gap Finder',
-    team: 'Hoddle',
-    mode: 'continuous',
-    status: 'operational',
-    endpoint: `${AZURE_FUNCTIONS_API_BASE}/hoddle-gap-finder`,
-    description: 'Market gap identification and analysis',
-    expected_fast_track_rate: '25%'
-  },
-  {
-    id: 'hoddle-feasibility-analyst',
-    name: 'Hoddle Feasibility Analyst',
-    team: 'Hoddle',
-    mode: 'continuous',
-    status: 'operational',
-    endpoint: `${AZURE_FUNCTIONS_API_BASE}/hoddle-feasibility-analyst`,
-    description: 'Implementation feasibility analysis',
-    expected_fast_track_rate: '22%'
-  },
-  {
-    id: 'waddle-concept-pitcher',
-    name: 'Waddle Concept Pitcher',
-    team: 'Waddle',
-    mode: 'on-demand',
-    status: 'operational',
-    endpoint: `${AZURE_FUNCTIONS_API_BASE}/waddle-concept-pitcher`,
-    description: 'Task-directed concept generation',
-    expected_fast_track_rate: '15%'
-  },
-  {
-    id: 'waddle-trend-scout',
-    name: 'Waddle Trend Scout',
-    team: 'Waddle',
-    mode: 'on-demand',
-    status: 'operational',
-    endpoint: `${AZURE_FUNCTIONS_API_BASE}/waddle-trend-scout`,
-    description: 'YouTube-enhanced trend analysis',
-    expected_fast_track_rate: '40%',
-    enhancement: 'YouTube Integration'
-  },
-  {
-    id: 'waddle-gap-finder',
-    name: 'Waddle Gap Finder',
-    team: 'Waddle',
-    mode: 'on-demand',
-    status: 'operational',
-    endpoint: `${AZURE_FUNCTIONS_API_BASE}/waddle-gap-finder`,
-    description: 'Targeted market gap analysis',
-    expected_fast_track_rate: '20%'
-  },
-  {
-    id: 'waddle-feasibility-analyst',
-    name: 'Waddle Feasibility Analyst',
-    team: 'Waddle',
-    mode: 'on-demand',
-    status: 'operational',
-    endpoint: `${AZURE_FUNCTIONS_API_BASE}/waddle-feasibility-analyst`,
-    description: 'On-demand feasibility optimization',
-    expected_fast_track_rate: '18%'
-  }
-];
-
-// Updated metrics to include new ideas from testing
-const UPDATED_METRICS = {
-  TOTAL_IDEAS: 252, // 225 original + 25 sandbox + 2 live testing
-  FAST_TRACK_IDEAS: 20, // 11 original + 8 sandbox + 1 live testing
-  TOTAL_AGENTS: 10, // 2 existing + 8 new
-  HEALTHY_AGENTS: 10 // All operational
-};
-
-const Sidebar: React.FC = () => {
-  const location = useLocation();
-  return (
-    <div className="sidebar">
-      <div className="sidebar-header">
-        <Zap size={24} color="#fff" />
-        <span className="app-title">AI Staff Suite</span>
-        <span className="app-subtitle">Analytics Dashboard</span>
-      </div>
-      <div className="live-data-status">
-        <div className="live-data-indicator"></div>
-        Live Data
-        <span className="last-update">Last update: {new Date().toLocaleTimeString()}</span>
-      </div>
-      <nav className="sidebar-nav">
-        <Link to="/" className={`nav-item ${location.pathname === '/' ? 'active' : ''}`}>
-          <Home size={20} /> Overview
-        </Link>
-        <Link to="/cos-pm-monitor" className={`nav-item ${location.pathname === '/cos-pm-monitor' ? 'active' : ''}`}>
-          <Brain size={20} /> CoS/PM Monitor
-        </Link>
-        <Link to="/agent-status" className={`nav-item ${location.pathname === '/agent-status' ? 'active' : ''}`}>
-          <Activity size={20} /> Agent Status
-        </Link>
-        <Link to="/idea-pipeline" className={`nav-item ${location.pathname === '/idea-pipeline' ? 'active' : ''}`}>
-          <Lightbulb size={20} /> Idea Pipeline
-        </Link>
-        <Link to="/analytics" className={`nav-item ${location.pathname === '/analytics' ? 'active' : ''}`}>
-          <TrendingUp size={20} /> Analytics
-        </Link>
-        <Link to="/executive-view" className={`nav-item ${location.pathname === '/executive-view' ? 'active' : ''}`}>
-          <Target size={20} /> Executive View
-        </Link>
-      </nav>
-    </div>
-  );
-};
-
-// Azure Functions Integration Functions
-const fetchIdeationAgentsHealth = async () => {
-  try {
-    const response = await fetch(`${AZURE_FUNCTIONS_API_BASE}/health-check`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    return {
-      status: data.status,
-      total_agents: data.total_agents || 8,
-      agents: data.agents || [],
-      timestamp: data.timestamp,
-      message: data.message
-    };
-  } catch (error) {
-    console.error('Error fetching ideation agents health:', error);
-    return {
-      status: 'error',
-      total_agents: 8,
-      agents: IDEATION_AGENTS.map(agent => agent.name),
-      timestamp: new Date().toISOString(),
-      message: 'Failed to connect to ideation agents'
-    };
-  }
-};
-
-const Overview: React.FC = () => {
-  const [cosPmStatus, setCosPmStatus] = useState<CosPmStatus | null>(null);
-  const [ideationHealth, setIdeationHealth] = useState<any>(null);
+function App() {
+  const [ideas, setIdeas] = useState([]);
+  const [agents, setAgents] = useState([]);
+  const [stats, setStats] = useState({ total_ideas: 0, fast_track_ideas: 0 });
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState('overview');
+  const [expandedIdeas, setExpandedIdeas] = useState(new Set());
+
+  // Filtering states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedDecision, setSelectedDecision] = useState('All Decisions');
+  const [selectedAgent, setSelectedAgent] = useState('All Agents');
+  const [sortBy, setSortBy] = useState('Sort by Date');
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      
-      try {
-        // Fetch existing CoS/PM data
-        const cosPmResponse = await fetch(`${API_BASE_URL}/status`);
-        if (cosPmResponse.ok) {
-          const cosPmData = await cosPmResponse.json();
-          setCosPmStatus(cosPmData);
-        }
-        
-        // Fetch ideation agents health
-        const ideationData = await fetchIdeationAgentsHealth();
-        setIdeationHealth(ideationData);
-        
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
-    const interval = setInterval(fetchData, 30000); // Refresh every 30 seconds
-    return () => clearInterval(interval);
   }, []);
 
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch ideas from production API
+      const ideasResponse = await fetch(`${PRODUCTION_API_URL}/ideas`);
+      const ideasData = await ideasResponse.json();
+      
+      // Handle the API response structure
+      const ideasArray = ideasData.ideas || ideasData || [];
+      const fastTrackCount = ideasData.fast_track || ideasArray.filter(idea => idea.fast_track || idea.decision === 'fast_track').length;
+      
+      setIdeas(Array.isArray(ideasArray) ? ideasArray : []);
+      setStats({
+        total_ideas: Array.isArray(ideasArray) ? ideasArray.length : 0,
+        fast_track_ideas: fastTrackCount
+      });
+
+      // Fetch agent status
+      try {
+        const agentsResponse = await fetch(`https://ai-staff-suite-api-https.ambitioussea-9ca2abb1.centralus.azurecontainerapps.io/api/agents/status`);
+        const agentsData = await agentsResponse.json();
+        setAgents(Array.isArray(agentsData) ? agentsData : []);
+      } catch (error) {
+        console.error('Error fetching agents:', error);
+        setAgents([]);
+      }
+
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setIdeas([]);
+      setStats({ total_ideas: 0, fast_track_ideas: 0 });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleIdeaExpansion = (ideaId) => {
+    const newExpanded = new Set(expandedIdeas);
+    if (newExpanded.has(ideaId)) {
+      newExpanded.delete(ideaId);
+    } else {
+      newExpanded.add(ideaId);
+    }
+    setExpandedIdeas(newExpanded);
+  };
+
+  const filteredIdeas = ideas.filter(idea => {
+    const matchesSearch = !searchTerm || 
+      idea.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      idea.agent_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesDecision = selectedDecision === 'All Decisions' || 
+      idea.decision === selectedDecision.toLowerCase() ||
+      (selectedDecision === 'Fast Track' && (idea.fast_track || idea.decision === 'fast_track'));
+    
+    const matchesAgent = selectedAgent === 'All Agents' || 
+      idea.agent_name === selectedAgent;
+    
+    return matchesSearch && matchesDecision && matchesAgent;
+  });
+
+  const sortedIdeas = [...filteredIdeas].sort((a, b) => {
+    if (sortBy === 'Sort by ICE+ Score') {
+      return (b.ice_plus_score || 0) - (a.ice_plus_score || 0);
+    } else if (sortBy === 'Sort by Profit Tier') {
+      return (b.profit_tier || 0) - (a.profit_tier || 0);
+    } else {
+      return new Date(b.created_at || b.timestamp || 0) - new Date(a.created_at || a.timestamp || 0);
+    }
+  });
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Unknown';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB');
+  };
+
+  const formatContent = (content, isExpanded, ideaId) => {
+    if (!content) return 'No content available';
+    
+    if (isExpanded) {
+      return (
+        <div>
+          <div>{content}</div>
+          <div 
+            style={{ 
+              color: '#666', 
+              fontSize: '0.9em', 
+              marginTop: '10px', 
+              cursor: 'pointer',
+              textDecoration: 'underline'
+            }}
+            onClick={() => toggleIdeaExpansion(ideaId)}
+          >
+            ▲ Click to collapse
+          </div>
+        </div>
+      );
+    } else {
+      const snippet = content.length > 200 ? content.substring(0, 200) + '...' : content;
+      return (
+        <div>
+          <div>{snippet}</div>
+          {content.length > 200 && (
+            <div 
+              style={{ 
+                color: '#666', 
+                fontSize: '0.9em', 
+                marginTop: '10px', 
+                cursor: 'pointer',
+                textDecoration: 'underline'
+              }}
+              onClick={() => toggleIdeaExpansion(ideaId)}
+            >
+              ▼ Click to expand
+            </div>
+          )}
+        </div>
+      );
+    }
+  };
+
   if (loading) {
-    return <div className="loading">Loading dashboard data...</div>;
+    return (
+      <div className="App">
+        <div style={{ padding: '50px', textAlign: 'center' }}>
+          <h2>Loading dashboard data...</h2>
+        </div>
+      </div>
+    );
   }
 
-  // Team performance data for charts
-  const teamPerformanceData = [
-    { name: 'Hoddle Team', agents: 4, healthy: 4 },
-    { name: 'Waddle Team', agents: 4, healthy: 4 },
-    { name: 'Executive', agents: 2, healthy: cosPmStatus ? 2 : 0 }
-  ];
-
-  // Updated decision distribution data
-  const decisionData = [
-    { name: 'Fast Track', value: UPDATED_METRICS.FAST_TRACK_IDEAS, color: '#10B981' },
-    { name: 'Prototype', value: 85, color: '#3B82F6' },
-    { name: 'Watch List', value: 120, color: '#F59E0B' },
-    { name: 'Archive', value: 27, color: '#6B7280' }
-  ];
-
   return (
-    <div className="main-content">
-      <div className="page-header">
-        <h1>Overview</h1>
-      </div>
-
-      {/* CoS/PM Status */}
-      <div className="status-section">
-        <div className="status-indicator">
-          <div className={`status-dot ${cosPmStatus?.cos_status === 'healthy' ? 'healthy' : 'error'}`}></div>
-          CoS/PM Status
+    <div className="App">
+      <div className="sidebar">
+        <div className="logo">
+          <h2>AI Staff Suite</h2>
+          <p>Analytics Dashboard</p>
         </div>
-        <div className="status-metrics">
-          <span className="metric">
-            <strong>CoS:</strong> {cosPmStatus?.cos_status || 'unknown'}
-          </span>
-          <span className="metric">
-            <strong>{cosPmStatus?.communication_success_rate || 0}%</strong> Success
-          </span>
-          <span className="metric">
-            <strong>{cosPmStatus?.avg_response_time || 0}ms</strong> Avg
-          </span>
-        </div>
-      </div>
-
-      {/* Updated Metrics Cards */}
-      <div className="metrics-grid">
-        <div className="metric-card">
-          <div className="metric-icon">
-            <Users size={24} color="#3B82F6" />
-          </div>
-          <div className="metric-content">
-            <div className="metric-value">{UPDATED_METRICS.TOTAL_AGENTS}</div>
-            <div className="metric-label">Total Agents</div>
-            <div className="metric-change positive">+8</div>
-          </div>
-        </div>
-
-        <div className="metric-card">
-          <div className="metric-icon">
-            <Activity size={24} color="#10B981" />
-          </div>
-          <div className="metric-content">
-            <div className="metric-value">{UPDATED_METRICS.HEALTHY_AGENTS}</div>
-            <div className="metric-label">Healthy Agents</div>
-            <div className="metric-change positive">100%</div>
-          </div>
-        </div>
-
-        <div className="metric-card">
-          <div className="metric-icon">
-            <Lightbulb size={24} color="#F59E0B" />
-          </div>
-          <div className="metric-content">
-            <div className="metric-value">{UPDATED_METRICS.TOTAL_IDEAS}</div>
-            <div className="metric-label">Total Ideas</div>
-            <div className="metric-change positive">+27</div>
-          </div>
-        </div>
-
-        <div className="metric-card">
-          <div className="metric-icon">
-            <Zap size={24} color="#EF4444" />
-          </div>
-          <div className="metric-content">
-            <div className="metric-value">{UPDATED_METRICS.FAST_TRACK_IDEAS}</div>
-            <div className="metric-label">Fast Track Ideas</div>
-            <div className="metric-change positive">+9</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Charts Section */}
-      <div className="charts-grid">
-        <div className="chart-container">
-          <h3>Team Performance</h3>
-          <p className="chart-subtitle">Agent health by team</p>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={teamPerformanceData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="healthy" fill="#10B981" name="Healthy Agents" />
-              <Bar dataKey="agents" fill="#E5E7EB" name="Total Agents" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="chart-container">
-          <h3>Decision Distribution</h3>
-          <p className="chart-subtitle">Live idea validation outcomes</p>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={decisionData}
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="value"
-                label={({ name, value }) => `${name}: ${value}`}
-              >
-                {decisionData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Ideation Agents Status */}
-      <div className="ideation-agents-section">
-        <h2>AI Ideation Agents</h2>
         
-        <div className="health-summary">
-          <div className={`status-indicator ${ideationHealth?.status === 'healthy' ? 'healthy' : 'error'}`}>
-            {ideationHealth?.status === 'healthy' ? '✅' : '❌'}
-          </div>
-          <span>{ideationHealth?.message || 'Status unknown'}</span>
-          <span className="agent-count">({ideationHealth?.total_agents || 8} agents)</span>
+        <div className="live-indicator">
+          <span className="live-dot"></span>
+          <span>Live Data</span>
+          <div className="timestamp">Updated: {new Date().toLocaleTimeString()}</div>
         </div>
 
-        <div className="agents-grid">
-          {IDEATION_AGENTS.map((agent) => (
-            <div key={agent.id} className="agent-card">
-              <div className="agent-header">
-                <h3>{agent.name}</h3>
-                <span className={`team-badge ${agent.team.toLowerCase()}`}>
-                  {agent.team}
-                </span>
-              </div>
-              
-              <div className="agent-details">
-                <p className="description">{agent.description}</p>
-                <div className="agent-stats">
-                  <div className="stat">
-                    <span className="label">Mode:</span>
-                    <span className="value">{agent.mode}</span>
-                  </div>
-                  <div className="stat">
-                    <span className="label">Fast Track Rate:</span>
-                    <span className="value">{agent.expected_fast_track_rate}</span>
-                  </div>
-                  {agent.enhancement && (
-                    <div className="stat">
-                      <span className="label">Enhancement:</span>
-                      <span className="value enhancement">{agent.enhancement}</span>
-                    </div>
-                  )}
+        <nav className="nav-menu">
+          <a href="#" className={currentPage === 'overview' ? 'active' : ''} onClick={() => setCurrentPage('overview')}>
+            <span className="nav-icon">📊</span> Overview
+          </a>
+          <a href="#" className={currentPage === 'cospm' ? 'active' : ''} onClick={() => setCurrentPage('cospm')}>
+            <span className="nav-icon">👥</span> CoS/PM Monitor
+          </a>
+          <a href="#" className={currentPage === 'agents' ? 'active' : ''} onClick={() => setCurrentPage('agents')}>
+            <span className="nav-icon">🤖</span> Agent Status
+          </a>
+          <a href="#" className={currentPage === 'ideas' ? 'active' : ''} onClick={() => setCurrentPage('ideas')}>
+            <span className="nav-icon">💡</span> Idea Pipeline
+          </a>
+          <a href="#" className={currentPage === 'analytics' ? 'active' : ''} onClick={() => setCurrentPage('analytics')}>
+            <span className="nav-icon">📈</span> Analytics
+          </a>
+          <a href="#" className={currentPage === 'executive' ? 'active' : ''} onClick={() => setCurrentPage('executive')}>
+            <span className="nav-icon">👔</span> Executive View
+          </a>
+        </nav>
+      </div>
+
+      <div className="main-content">
+        {currentPage === 'overview' && (
+          <div className="overview-page">
+            <h1>Overview</h1>
+            <p>Real-time insights into your AI Staff Suite performance</p>
+
+            <div className="status-bar">
+              <div className="status-item">
+                <span className="status-icon green">✓</span>
+                <div>
+                  <div className="status-label">System Status</div>
+                  <div className="status-value">All Systems Operational</div>
                 </div>
               </div>
-              
-              <div className="agent-status">
-                <div className={`status-indicator ${agent.status === 'operational' ? 'operational' : 'error'}`}>
-                  {agent.status}
+              <div className="status-item">
+                <span className="status-icon blue">⚡</span>
+                <div>
+                  <div className="status-label">CoS/PM</div>
+                  <div className="status-value">Unknown</div>
+                </div>
+              </div>
+              <div className="status-item">
+                <span className="status-icon gray">🕐</span>
+                <div>
+                  <div className="status-label">Last Update</div>
+                  <div className="status-value">{new Date().toLocaleTimeString()}</div>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
+
+            <div className="metrics-grid">
+              <div className="metric-card">
+                <div className="metric-icon">👥</div>
+                <div className="metric-change">+{agents.length}</div>
+                <div className="metric-value">{agents.length}</div>
+                <div className="metric-label">Total Agents</div>
+              </div>
+              <div className="metric-card">
+                <div className="metric-icon">✅</div>
+                <div className="metric-change">100%</div>
+                <div className="metric-value">{agents.filter(agent => agent.status === 'operational').length}</div>
+                <div className="metric-label">Healthy Agents</div>
+              </div>
+              <div className="metric-card">
+                <div className="metric-icon">💡</div>
+                <div className="metric-change">+{stats.total_ideas}</div>
+                <div className="metric-value">{stats.total_ideas}</div>
+                <div className="metric-label">Total Ideas</div>
+              </div>
+              <div className="metric-card">
+                <div className="metric-icon">⚡</div>
+                <div className="metric-change">+{stats.fast_track_ideas}</div>
+                <div className="metric-value">{stats.fast_track_ideas}</div>
+                <div className="metric-label">Fast Track Ideas</div>
+              </div>
+            </div>
+
+            <div className="charts-section">
+              <div className="chart-container">
+                <h3>Team Performance</h3>
+                <p>Agent health by team</p>
+                <div className="team-chart">
+                  <div className="chart-bar">
+                    <div className="bar" style={{height: '80px', backgroundColor: '#10B981'}}></div>
+                    <div className="bar-label">Hoddle Team</div>
+                  </div>
+                  <div className="chart-bar">
+                    <div className="bar" style={{height: '80px', backgroundColor: '#10B981'}}></div>
+                    <div className="bar-label">Waddle Team</div>
+                  </div>
+                  <div className="chart-bar">
+                    <div className="bar" style={{height: '40px', backgroundColor: '#E5E7EB'}}></div>
+                    <div className="bar-label">Executive</div>
+                  </div>
+                </div>
+              </div>
+              <div className="chart-container">
+                <h3>Decision Distribution</h3>
+                <p>Idea validation outcomes</p>
+                <div className="pie-chart">
+                  <div className="pie-slice" style={{background: 'conic-gradient(#10B981 0deg 36deg, #6B7280 36deg 360deg)'}}>
+                    <div className="pie-label">Fast Track: {stats.fast_track_ideas}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="recent-section">
+              <h3>Recent Fast Track Ideas</h3>
+              <div className="recent-ideas">
+                {ideas.filter(idea => idea.fast_track || idea.decision === 'fast_track').slice(0, 3).map((idea, index) => (
+                  <div key={index} className="recent-idea-card">
+                    <div className="idea-header">
+                      <h4>{idea.agent_name || 'Unknown Agent'} Insight #{index + 1}</h4>
+                      <span className="fast-track-badge">Fast Track</span>
+                    </div>
+                    <div className="idea-meta">
+                      {idea.agent_name} • ICE+ Score: {idea.ice_plus_score || 0} • {formatDate(idea.created_at || idea.timestamp)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="agents-section">
+              <h3>AI Ideation Agents</h3>
+              <div className="agents-grid">
+                {agents.slice(0, 4).map((agent, index) => (
+                  <div key={index} className="agent-card">
+                    <div className="agent-header">
+                      <h4>{agent.name}</h4>
+                      <span className="agent-team">{agent.team}</span>
+                    </div>
+                    <p>{agent.description || 'AI agent for business ideation'}</p>
+                    <div className="agent-stats">
+                      <div>Fast Track Rate<span>{agent.fast_track_rate || '25%'}</span></div>
+                      <div>Status<span className="status-operational">{agent.status || 'Operational'}</span></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {currentPage === 'ideas' && (
+          <div className="ideas-page">
+            <h1>Idea Pipeline</h1>
+            <p>Manage and track all generated business ideas</p>
+
+            <div className="filters-section">
+              <input
+                type="text"
+                placeholder="Search ideas or agents..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+              <select value={selectedDecision} onChange={(e) => setSelectedDecision(e.target.value)}>
+                <option>All Decisions</option>
+                <option>Fast Track</option>
+                <option>Approved</option>
+                <option>Review</option>
+                <option>Archive</option>
+              </select>
+              <select value={selectedAgent} onChange={(e) => setSelectedAgent(e.target.value)}>
+                <option>All Agents</option>
+                {[...new Set(ideas.map(idea => idea.agent_name))].filter(Boolean).map(agent => (
+                  <option key={agent}>{agent}</option>
+                ))}
+              </select>
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                <option>Sort by Date</option>
+                <option>Sort by ICE+ Score</option>
+                <option>Sort by Profit Tier</option>
+              </select>
+            </div>
+
+            <div className="ideas-stats">
+              <div className="stat-card">
+                <div className="stat-value">{stats.total_ideas}</div>
+                <div className="stat-label">Total Ideas</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-value">{stats.fast_track_ideas}</div>
+                <div className="stat-label">Fast Track</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-value">0</div>
+                <div className="stat-label">Approved</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-value">{ideas.length > 0 ? (ideas.reduce((sum, idea) => sum + (idea.ice_plus_score || 0), 0) / ideas.length).toFixed(1) : '0'}</div>
+                <div className="stat-label">Avg ICE+ Score</div>
+              </div>
+            </div>
+
+            <div className="ideas-list">
+              {sortedIdeas.map((idea, index) => (
+                <div key={idea.id || index} className="idea-card">
+                  <div className="idea-header">
+                    <span className="idea-number">{index + 1}.</span>
+                    <span className="idea-status">{idea.decision?.toUpperCase() || 'PENDING'}</span>
+                    {(idea.fast_track || idea.decision === 'fast_track') && (
+                      <span className="fast-track-badge">FAST TRACK</span>
+                    )}
+                  </div>
+                  <div className="idea-content">
+                    {formatContent(idea.content, expandedIdeas.has(String(idea.id || index)), String(idea.id || index))}
+                  </div>
+                  <div className="idea-meta">
+                    <span>Agent:{idea.agent_name || 'Unknown'}</span>
+                    <span>ICE+ Score:{idea.ice_plus_score || 0}</span>
+                    <span>Profit Tier:${idea.profit_tier || '1-3k'}/month</span>
+                    <span>Created:{formatDate(idea.created_at || idea.timestamp)}</span>
+                  </div>
+                  <div className="idea-actions">
+                    <button className="btn-primary">View Details</button>
+                    <button className="btn-secondary">Edit</button>
+                    <button className="btn-tertiary">Export</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {currentPage === 'agents' && (
+          <div className="agents-page">
+            <h1>Agent Status</h1>
+            <p>Monitor the health and performance of all AI agents</p>
+            
+            <div className="agents-list">
+              {agents.map((agent, index) => (
+                <div key={index} className="agent-status-card">
+                  <div className="agent-info">
+                    <h3>{agent.name}</h3>
+                    <p>{agent.description || 'AI ideation agent'}</p>
+                    <div className="agent-details">
+                      <span>Team: {agent.team}</span>
+                      <span>Status: <span className="status-operational">{agent.status}</span></span>
+                    </div>
+                  </div>
+                  <div className="agent-actions">
+                    <button className="btn-primary">Test Agent</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
-};
-
-// Simplified placeholder components for other pages
-const CosPmMonitor: React.FC = () => {
-  return (
-    <div className="main-content">
-      <div className="page-header">
-        <h1>CoS/PM Monitor</h1>
-      </div>
-      <div className="placeholder-content">
-        <p>CoS/PM monitoring functionality preserved from existing implementation.</p>
-      </div>
-    </div>
-  );
-};
-
-const AgentStatus: React.FC = () => {
-  return (
-    <div className="main-content">
-      <div className="page-header">
-        <h1>Agent Status</h1>
-      </div>
-      <div className="placeholder-content">
-        <p>Agent status monitoring functionality preserved from existing implementation.</p>
-      </div>
-    </div>
-  );
-};
-
-const IdeaPipeline: React.FC = () => {
-  return (
-    <div className="main-content">
-      <div className="page-header">
-        <h1>Idea Pipeline</h1>
-      </div>
-      <div className="placeholder-content">
-        <p>Idea pipeline functionality preserved from existing implementation.</p>
-      </div>
-    </div>
-  );
-};
-
-const Analytics: React.FC = () => {
-  return (
-    <div className="main-content">
-      <div className="page-header">
-        <h1>Analytics</h1>
-      </div>
-      <div className="placeholder-content">
-        <p>Analytics functionality preserved from existing implementation.</p>
-      </div>
-    </div>
-  );
-};
-
-const ExecutiveView: React.FC = () => {
-  return (
-    <div className="main-content">
-      <div className="page-header">
-        <h1>Executive View</h1>
-      </div>
-      <div className="placeholder-content">
-        <p>Executive view functionality preserved from existing implementation.</p>
-      </div>
-    </div>
-  );
-};
-
-const App: React.FC = () => {
-  return (
-    <Router>
-      <div className="app">
-        <Sidebar />
-        <Routes>
-          <Route path="/" element={<Overview />} />
-          <Route path="/cos-pm-monitor" element={<CosPmMonitor />} />
-          <Route path="/agent-status" element={<AgentStatus />} />
-          <Route path="/idea-pipeline" element={<IdeaPipeline />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/executive-view" element={<ExecutiveView />} />
-        </Routes>
-      </div>
-    </Router>
-  );
-};
+}
 
 export default App;
-

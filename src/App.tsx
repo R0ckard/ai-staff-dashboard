@@ -33,6 +33,7 @@ interface CosPmStatus {
   avg_response_time: number;
   last_communication: string;
 }
+// @ts-ignore
 
 interface Idea {
   id: number;
@@ -49,7 +50,7 @@ interface Idea {
 
 // API Configuration
 const API_BASE_URL = 'https://ai-staff-suite-api-https.ambitioussea-9ca2abb1.centralus.azurecontainerapps.io';
-const IDEAS_API_URL = 'https://ai-staff-suite-api-https.ambitioussea-9ca2abb1.centralus.azurecontainerapps.io/api';
+const IDEAS_API_URL = 'https://5002-i3lmtwdcd2b6b4dj3nq9l-e2661bcb.manusvm.computer/api';
 const AZURE_FUNCTIONS_API_BASE = 'https://ai-staff-functions.azurewebsites.net/api';
 
 // Ideation Agents Configuration
@@ -319,16 +320,15 @@ const Overview: React.FC = () => {
         if (ideasResponse.ok) {
           const ideasData = await ideasResponse.json();
           
-          // Handle the API response structure: {fast_track: number, ideas: array}
-          const ideasArray = Array.isArray(ideasData.ideas) ? ideasData.ideas : [];
-          const fastTrackFromAPI = ideasData.fast_track || 0;
+          // Ensure ideasData is an array before using filter
+          const ideasArray = Array.isArray(ideasData) ? ideasData : [];
           setIdeas(ideasArray);
           
           // Calculate statistics from ideas data
           const stats = {
             total_ideas: ideasArray.length,
             decisions: {
-              fast_track: fastTrackFromAPI, // Use the fast_track count from API
+              fast_track: ideasArray.filter((idea: any) => idea.decision === 'fast_track').length,
               archive: ideasArray.filter((idea: any) => idea.decision === 'archive').length,
               approved: ideasArray.filter((idea: any) => idea.decision === 'approved').length,
               review: ideasArray.filter((idea: any) => idea.decision === 'review').length
@@ -814,29 +814,42 @@ const IdeaPipeline: React.FC = () => {
   const [sortBy, setSortBy] = useState('created_at');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expandedIdeas, setExpandedIdeas] = useState<Set<string>>(new Set());
 
-  // Toggle expand/collapse for an idea
-  const toggleIdeaExpansion = (ideaId: string) => {
-    setExpandedIdeas(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(ideaId)) {
-        newSet.delete(ideaId);
-      } else {
-        newSet.add(ideaId);
-      }
-      return newSet;
-    });
-  };
-
-  // Fetch ideas from production API
+  // Fetch ideas from production API with server-side filtering
   useEffect(() => {
     const fetchIdeas = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        const response = await fetch(`${IDEAS_API_URL}/ideas`);
+        // Build API URL with filters
+        let apiUrl = `${IDEAS_API_URL}/ideas`;
+        const params = new URLSearchParams();
+        
+        if (filterDecision !== 'all') {
+          // Map UI filter values to API values
+          const decisionMap: { [key: string]: string } = {
+            'Fast Track': 'fast_track',
+            'Approved': 'approved',
+            'Review': 'review',
+            'Archive': 'archive'
+          };
+          params.append('decision', decisionMap[filterDecision] || filterDecision.toLowerCase());
+        }
+        
+        if (filterAgent !== 'all') {
+          params.append('agent', filterAgent);
+        }
+        
+        if (searchTerm) {
+          params.append('search', searchTerm);
+        }
+        
+        if (params.toString()) {
+          apiUrl += '?' + params.toString();
+        }
+        
+        const response = await fetch(apiUrl);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -849,11 +862,11 @@ const IdeaPipeline: React.FC = () => {
           concept: item.content,
           profit_tier: item.profit_tier,
           ice_score: item.ice_plus_score,
-          decision: item.decision === 'fast_track' ? 'Fast Track' : 
-                   item.decision === 'approved' ? 'Approved' :
-                   item.decision === 'review' ? 'Review' : 'Archive',
-          fast_track: item.decision === 'fast_track',
-          agent: item.agent,
+          decision: item.final_decision === 'fast_track' ? 'Fast Track' : 
+                   item.final_decision === 'approved' ? 'Approved' :
+                   item.final_decision === 'review' ? 'Review' : 'Archive',
+          fast_track: item.final_decision === 'fast_track',
+          agent: item.agent_name,
           created_at: item.created_at
         }));
         
@@ -867,31 +880,13 @@ const IdeaPipeline: React.FC = () => {
     };
 
     fetchIdeas();
-  }, []); // Only fetch once on component mount
+  }, [filterDecision, filterAgent, searchTerm]); // Re-fetch when filters change
 
-  // Apply client-side filtering and sorting
+  // Update filtered ideas when ideas change (server-side filtering handles most filtering)
   useEffect(() => {
     let filtered = ideas;
 
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter(idea => 
-        idea.concept.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        idea.agent.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Apply decision filter
-    if (filterDecision !== 'all') {
-      filtered = filtered.filter(idea => idea.decision === filterDecision);
-    }
-
-    // Apply agent filter
-    if (filterAgent !== 'all') {
-      filtered = filtered.filter(idea => idea.agent === filterAgent);
-    }
-
-    // Apply sorting
+    // Apply client-side sorting only (filtering is done server-side)
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'ice_score':
@@ -905,7 +900,7 @@ const IdeaPipeline: React.FC = () => {
     });
 
     setFilteredIdeas(filtered);
-  }, [ideas, searchTerm, filterDecision, filterAgent, sortBy]); // Include all filter dependencies
+  }, [ideas, sortBy]); // Only depend on ideas and sortBy since filtering is server-side
 
   const getDecisionColor = (decision: string) => {
     switch (decision) {
@@ -1014,52 +1009,44 @@ const IdeaPipeline: React.FC = () => {
         {filteredIdeas.map((idea) => (
           <div key={idea.id} className="idea-card">
             <div className="idea-header">
-              <div className="idea-number">
-                {filteredIdeas.indexOf(idea) + 1}.
+              <div className="idea-title">
+                <h4>{idea.concept}</h4>
+                {idea.fast_track && <Zap size={16} className="fast-track-icon" />}
               </div>
               <div className={`decision-badge ${getDecisionColor(idea.decision)}`}>
                 {idea.decision}
               </div>
             </div>
             
-            <div 
-              className="idea-content clickable" 
-              onClick={() => toggleIdeaExpansion(idea.id.toString())}
-              style={{ cursor: 'pointer' }}
-            >
-              <div className="idea-snippet">
-                {expandedIdeas.has(idea.id.toString()) 
-                  ? idea.concept 
-                  : (idea.concept.length > 200 
-                      ? idea.concept.substring(0, 200) + '...' 
-                      : idea.concept)
-                }
-              </div>
-              {idea.concept.length > 200 && (
-                <div className="expand-indicator">
-                  {expandedIdeas.has(idea.id.toString()) ? '▲ Click to collapse' : '▼ Click to expand'}
-                </div>
-              )}
+            <div className="idea-meta">
+              <span className="meta-item">
+                <strong>Agent:</strong> {idea.agent}
+              </span>
+              <span className="meta-item">
+                <strong>ICE+ Score:</strong> {idea.ice_score}
+              </span>
+              <span className="meta-item">
+                <strong>Profit Tier:</strong> {getProfitTierLabel(idea.profit_tier)}
+              </span>
+              <span className="meta-item">
+                <strong>Created:</strong> {new Date(idea.created_at).toLocaleDateString()}
+              </span>
             </div>
             
-            <div className="idea-meta">
-              <div className="meta-row">
-                <span className="meta-label">Agent:</span>
-                <span className="meta-value">{idea.agent}</span>
+            {(idea.market_trend || idea.youtube_channel) && (
+              <div className="idea-details">
+                {idea.market_trend && (
+                  <span className="detail-tag trend">
+                    📈 {idea.market_trend}
+                  </span>
+                )}
+                {idea.youtube_channel && (
+                  <span className="detail-tag youtube">
+                    📺 {idea.youtube_channel}
+                  </span>
+                )}
               </div>
-              <div className="meta-row">
-                <span className="meta-label">ICE+ Score:</span>
-                <span className="meta-value">{idea.ice_score}</span>
-              </div>
-              <div className="meta-row">
-                <span className="meta-label">Profit Tier:</span>
-                <span className="meta-value">{getProfitTierLabel(idea.profit_tier)}</span>
-              </div>
-              <div className="meta-row">
-                <span className="meta-label">Created:</span>
-                <span className="meta-value">{new Date(idea.created_at).toLocaleDateString('en-GB')}</span>
-              </div>
-            </div>
+            )}
             
             <div className="idea-actions">
               <button className="action-button primary">View Details</button>
