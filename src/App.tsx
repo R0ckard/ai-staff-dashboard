@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
-// Use the working Container Apps API
-const API_URL = 'https://ai-staff-suite-api-https.ambitioussea-9ca2abb1.centralus.azurecontainerapps.io/api';
+// Use the Azure SQL API that has all 461 ideas
+const API_URL = 'https://5005-i8k5hrlry9kxfdoiiyn1y-e2661bcb.manusvm.computer/api';
 
 function App() {
   const [ideas, setIdeas] = useState([]);
@@ -19,14 +19,14 @@ function App() {
       const response = await fetch(`${API_URL}/ideas`);
       const data = await response.json();
       
-      const ideasArray = Array.isArray(data) ? data : data.ideas || [];
+      const ideasArray = Array.isArray(data.ideas) ? data.ideas : [];
       const fastTrackCount = data.fast_track || ideasArray.filter((idea: any) => 
         idea.fast_track || idea.final_decision === 'fast_track'
       ).length;
       
       setIdeas(ideasArray);
       setStats({
-        total_ideas: ideasArray.length,
+        total_ideas: data.total || ideasArray.length,
         fast_track_ideas: fastTrackCount
       });
     } catch (error) {
@@ -41,7 +41,7 @@ function App() {
     return (
       <div style={{ padding: '20px', textAlign: 'center' }}>
         <h1>AI Staff Suite Dashboard</h1>
-        <p>Loading...</p>
+        <p>Loading 461 ideas from Azure SQL database...</p>
       </div>
     );
   }
@@ -81,7 +81,7 @@ function App() {
               margin: '10px 0', 
               border: '1px solid #eee', 
               borderRadius: '6px',
-              backgroundColor: idea.final_decision === 'fast_track' ? '#f0f9ff' : '#fff'
+              backgroundColor: idea.final_decision === 'fast_track' || idea.fast_track ? '#f0f9ff' : '#fff'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                 <strong>{idea.agent_name || 'Unknown Agent'}</strong>
@@ -89,10 +89,10 @@ function App() {
                   padding: '4px 8px', 
                   borderRadius: '4px', 
                   fontSize: '12px',
-                  backgroundColor: idea.final_decision === 'fast_track' ? '#10b981' : '#6b7280',
+                  backgroundColor: idea.final_decision === 'fast_track' || idea.fast_track ? '#10b981' : '#6b7280',
                   color: 'white'
                 }}>
-                  {idea.final_decision || 'pending'}
+                  {idea.final_decision || idea.decision || 'pending'}
                 </span>
               </div>
               <p style={{ margin: '0 0 10px 0', color: '#555' }}>
@@ -112,7 +112,7 @@ function App() {
         <h3>System Status</h3>
         <p>✅ Dashboard: Operational</p>
         <p>✅ API Connection: Active</p>
-        <p>✅ Data Source: Container Apps API</p>
+        <p>✅ Data Source: Azure SQL Database (461 ideas)</p>
         <p>🔄 Last Updated: {new Date().toLocaleTimeString()}</p>
       </div>
     </div>
