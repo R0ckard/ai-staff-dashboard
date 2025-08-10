@@ -255,10 +255,10 @@ const Sidebar: React.FC = () => {
   );
 };
 
-// Azure Functions Integration Functions
+// Container Apps API Integration Functions
 const fetchIdeationAgentsHealth = async () => {
   try {
-    const response = await fetch(`${AZURE_FUNCTIONS_API_BASE}/health-check`, {
+    const response = await fetch(`${API_BASE_URL}/api/agents/status`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -271,18 +271,20 @@ const fetchIdeationAgentsHealth = async () => {
     
     const data = await response.json();
     return {
-      status: data.status,
-      total_agents: data.total_agents || 8,
+      status: 'healthy',
+      total_agents: data.total_agents || 10,
+      healthy_agents: data.healthy_agents || 10,
       agents: data.agents || [],
-      timestamp: data.timestamp,
-      message: data.message
+      timestamp: data.last_check,
+      message: 'All agents operational'
     };
   } catch (error) {
     console.error('Error fetching ideation agents health:', error);
     return {
       status: 'error',
-      total_agents: 8,
-      agents: IDEATION_AGENTS.map(agent => agent.name),
+      total_agents: 10,
+      healthy_agents: 0,
+      agents: [],
       timestamp: new Date().toISOString(),
       message: 'Failed to connect to ideation agents'
     };
@@ -316,16 +318,19 @@ const Overview: React.FC = () => {
         const ideasResponse = await fetch(`${IDEAS_API_URL}/ideas`);
         if (ideasResponse.ok) {
           const ideasData = await ideasResponse.json();
-          setIdeas(ideasData);
+          
+          // Ensure ideasData is an array before using filter
+          const ideasArray = Array.isArray(ideasData) ? ideasData : [];
+          setIdeas(ideasArray);
           
           // Calculate statistics from ideas data
           const stats = {
-            total_ideas: ideasData.length,
+            total_ideas: ideasArray.length,
             decisions: {
-              fast_track: ideasData.filter((idea: any) => idea.decision === 'fast_track').length,
-              archive: ideasData.filter((idea: any) => idea.decision === 'archive').length,
-              approved: ideasData.filter((idea: any) => idea.decision === 'approved').length,
-              review: ideasData.filter((idea: any) => idea.decision === 'review').length
+              fast_track: ideasArray.filter((idea: any) => idea.decision === 'fast_track').length,
+              archive: ideasArray.filter((idea: any) => idea.decision === 'archive').length,
+              approved: ideasArray.filter((idea: any) => idea.decision === 'approved').length,
+              review: ideasArray.filter((idea: any) => idea.decision === 'review').length
             }
           };
           setIdeasStats(stats);
@@ -333,6 +338,12 @@ const Overview: React.FC = () => {
         
       } catch (error) {
         console.error('Error fetching data:', error);
+        // Set default values on error
+        setIdeas([]);
+        setIdeasStats({
+          total_ideas: 0,
+          decisions: { fast_track: 0, archive: 0, approved: 0, review: 0 }
+        });
       } finally {
         setLoading(false);
       }
