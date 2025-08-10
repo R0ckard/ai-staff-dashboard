@@ -1,0 +1,9 @@
+{
+  "buildCommand": "npm run build",
+  "outputLocation": "build",
+  "skipGithubActionWorkflowGeneration": false,
+  "navigationFallback": {
+    "rewrite": "/index.html"
+  }
+}
+
