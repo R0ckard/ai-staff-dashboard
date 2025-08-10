@@ -849,7 +849,7 @@ const IdeaPipeline: React.FC = () => {
           concept: item.content,
           profit_tier: item.profit_tier,
           ice_score: item.ice_plus_score,
-          decision: item.fast_track ? 'Fast Track' : 
+          decision: item.fast_track || item.final_decision === 'fast_track' ? 'Fast Track' : 
                    item.final_decision === 'approved' ? 'Approved' :
                    item.final_decision === 'review' ? 'Review' : 'Archive',
           fast_track: item.fast_track,
@@ -1002,7 +1002,7 @@ const IdeaPipeline: React.FC = () => {
           <p>Total Ideas</p>
         </div>
         <div className="stat-card">
-          <h3>{filteredIdeas.filter(idea => idea.fast_track).length}</h3>
+          <h3>{filteredIdeas.filter(idea => idea.fast_track || idea.decision === 'Fast Track').length}</h3>
           <p>Fast Track</p>
         </div>
         <div className="stat-card">
