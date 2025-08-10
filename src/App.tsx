@@ -49,7 +49,7 @@ interface Idea {
 
 // API Configuration
 const API_BASE_URL = 'https://ai-staff-suite-api-https.ambitioussea-9ca2abb1.centralus.azurecontainerapps.io';
-const IDEAS_API_URL = 'https://5006-i8k5hrlry9kxfdoiiyn1y-e2661bcb.manusvm.computer/api';
+const IDEAS_API_URL = 'https://5006-iupj9f5cgybrpttltljjh-e2661bcb.manusvm.computer/api';
 const AZURE_FUNCTIONS_API_BASE = 'https://ai-staff-functions.azurewebsites.net/api';
 
 // Ideation Agents Configuration
