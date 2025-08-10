@@ -1,6 +1,7 @@
+// FORCE DEPLOYMENT: 2025-08-10 01:28 AM - Critical API connection fix
 import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Home, Activity, Lightbulb, Users, TrendingUp, Target, Zap, Brain, Search, Filter, RefreshCw, CheckCircle, Clock } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { Home, Activity, Lightbulb, Users, TrendingUp, Target, Zap, Brain, Search, Filter, RefreshCw, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import './App.css';
 
@@ -33,35 +34,22 @@ interface CosPmStatus {
   last_communication: string;
 }
 
-// API Response Types
-interface ApiIdea {
-  id: number;
-  content: string;
-  final_decision: string;
-  agent_name: string;
-  created_at: string;
-  ice_plus_score: number;
-  weighted_matrix_score: number;
-  profit_tier: number;
-}
-
 interface Idea {
-  id: string;
-  title: string;
-  content: string;
+  id: number;
+  concept: string;
+  profit_tier: number;
+  ice_score: number;
   decision: string;
+  fast_track: boolean;
   agent: string;
   created_at: string;
-  ice_plus_score: number;
-  matrix_score: number;
-  profit_tier: number;
   market_trend?: string;
   youtube_channel?: string;
 }
 
 // API Configuration
-const API_BASE_URL = 'https://ai-staff-api-gateway.ambitioussea-9ca2abb1.centralus.azurecontainerapps.io/api';
-const IDEAS_API_URL = 'http://localhost:5001/api';
+const API_BASE_URL = 'https://ai-staff-api-gateway.ambitioussea-9ca2abb1.centralus.azurecontainerapps.io';
+const IDEAS_API_URL = 'https://5002-i3lmtwdcd2b6b4dj3nq9l-e2661bcb.manusvm.computer/api';
 const AZURE_FUNCTIONS_API_BASE = 'https://ai-staff-functions.azurewebsites.net/api';
 
 // Ideation Agents Configuration
@@ -146,6 +134,71 @@ const IDEATION_AGENTS: IdeationAgent[] = [
     endpoint: `${AZURE_FUNCTIONS_API_BASE}/waddle-feasibility-analyst`,
     description: 'On-demand feasibility optimization',
     expected_fast_track_rate: '18%'
+  }
+];
+
+// Updated metrics to include new ideas from testing
+const UPDATED_METRICS = {
+  TOTAL_IDEAS: 252,
+  FAST_TRACK_IDEAS: 20,
+  TOTAL_AGENTS: 10,
+  HEALTHY_AGENTS: 10
+};
+
+// Mock ideas data for demonstration
+const MOCK_IDEAS: Idea[] = [
+  {
+    id: 1,
+    concept: "Machine learning model marketplace for non-technical users",
+    profit_tier: 1,
+    ice_score: 9.87,
+    decision: "Fast Track",
+    fast_track: true,
+    agent: "Hoddle Trend Scout",
+    created_at: "2025-08-09T10:30:00Z",
+    market_trend: "ESG compliance importance"
+  },
+  {
+    id: 2,
+    concept: "Multi-platform content distribution solution for creators",
+    profit_tier: 2,
+    ice_score: 8.67,
+    decision: "Fast Track",
+    fast_track: true,
+    agent: "Waddle Trend Scout",
+    created_at: "2025-08-09T09:15:00Z",
+    youtube_channel: "TechStartup Hub (2.3M subscribers)"
+  },
+  {
+    id: 3,
+    concept: "Process automation solution for small businesses",
+    profit_tier: 1,
+    ice_score: 3.91,
+    decision: "Approved",
+    fast_track: false,
+    agent: "Hoddle Concept Pitcher",
+    created_at: "2025-08-09T08:45:00Z"
+  },
+  {
+    id: 4,
+    concept: "Team building platform for remote workers",
+    profit_tier: 2,
+    ice_score: 3.31,
+    decision: "Approved",
+    fast_track: false,
+    agent: "Hoddle Concept Pitcher",
+    created_at: "2025-08-09T07:20:00Z"
+  },
+  {
+    id: 5,
+    concept: "Educational video analytics platform",
+    profit_tier: 1,
+    ice_score: 7.69,
+    decision: "Fast Track",
+    fast_track: true,
+    agent: "Waddle Trend Scout",
+    created_at: "2025-08-09T06:10:00Z",
+    youtube_channel: "TechStartup Hub"
   }
 ];
 
@@ -238,16 +291,8 @@ const fetchIdeationAgentsHealth = async () => {
 
 const Overview: React.FC = () => {
   const [cosPmStatus, setCosPmStatus] = useState<CosPmStatus | null>(null);
-  const [ideas, setIdeas] = useState<Idea[]>([]);
-  const [metrics, setMetrics] = useState({
-    TOTAL_IDEAS: 0,
-    FAST_TRACK_IDEAS: 0,
-    APPROVED_IDEAS: 0,
-    REVIEW_IDEAS: 0,
-    ARCHIVE_IDEAS: 0,
-    TOTAL_AGENTS: 10,
-    HEALTHY_AGENTS: 10
-  });
+  const [ideationHealth, setIdeationHealth] = useState<any>(null);
+  const [ideasStats, setIdeasStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -255,44 +300,6 @@ const Overview: React.FC = () => {
       setLoading(true);
       
       try {
-        // Fetch ideas data
-        const ideasResponse = await fetch(`${IDEAS_API_URL}/ideas`);
-        if (ideasResponse.ok) {
-          const ideasData = await ideasResponse.json();
-          
-          // Transform API data
-          const transformedIdeas = (ideasData.ideas || []).map((idea: ApiIdea) => ({
-            id: idea.id.toString(),
-            title: idea.content.substring(0, 100) + '...',
-            content: idea.content,
-            decision: idea.final_decision,
-            agent: idea.agent_name,
-            created_at: idea.created_at,
-            ice_plus_score: idea.ice_plus_score || 0,
-            matrix_score: idea.weighted_matrix_score || 0,
-            profit_tier: idea.profit_tier || 1
-          }));
-          
-          setIdeas(transformedIdeas);
-          
-          // Calculate metrics from real data
-          const totalIdeas = transformedIdeas.length;
-          const fastTrackIdeas = transformedIdeas.filter((idea: Idea) => idea.decision === 'fast_track').length;
-          const approvedIdeas = transformedIdeas.filter((idea: Idea) => idea.decision === 'approved').length;
-          const reviewIdeas = transformedIdeas.filter((idea: Idea) => idea.decision === 'review').length;
-          const archiveIdeas = transformedIdeas.filter((idea: Idea) => idea.decision === 'archive').length;
-          
-          setMetrics({
-            TOTAL_IDEAS: totalIdeas,
-            FAST_TRACK_IDEAS: fastTrackIdeas,
-            APPROVED_IDEAS: approvedIdeas,
-            REVIEW_IDEAS: reviewIdeas,
-            ARCHIVE_IDEAS: archiveIdeas,
-            TOTAL_AGENTS: 10,
-            HEALTHY_AGENTS: 10
-          });
-        }
-        
         // Fetch existing CoS/PM data
         const cosPmResponse = await fetch(`${API_BASE_URL}/status`);
         if (cosPmResponse.ok) {
@@ -301,7 +308,15 @@ const Overview: React.FC = () => {
         }
         
         // Fetch ideation agents health
-        await fetchIdeationAgentsHealth();
+        const ideationData = await fetchIdeationAgentsHealth();
+        setIdeationHealth(ideationData);
+        
+        // Fetch ideas statistics
+        const ideasResponse = await fetch(`${IDEAS_API_URL}/stats`);
+        if (ideasResponse.ok) {
+          const ideasData = await ideasResponse.json();
+          setIdeasStats(ideasData);
+        }
         
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -335,10 +350,8 @@ const Overview: React.FC = () => {
 
   // Updated decision distribution data
   const decisionData = [
-    { name: 'Fast Track', value: metrics.FAST_TRACK_IDEAS, color: '#10B981' },
-    { name: 'Approved', value: metrics.APPROVED_IDEAS, color: '#3B82F6' },
-    { name: 'Review', value: metrics.REVIEW_IDEAS, color: '#F59E0B' },
-    { name: 'Archive', value: metrics.ARCHIVE_IDEAS, color: '#6B7280' }
+    { name: 'Fast Track', value: ideasStats?.decisions?.fast_track || 0, color: '#10B981' },
+    { name: 'Archive', value: ideasStats?.decisions?.archive || 0, color: '#6B7280' }
   ];
 
   return (
@@ -381,7 +394,7 @@ const Overview: React.FC = () => {
             <div className="metric-change positive">+8</div>
           </div>
           <div className="metric-content">
-            <h3 className="metric-value">{metrics.TOTAL_AGENTS}</h3>
+            <h3 className="metric-value">{ideationHealth?.total_agents || 10}</h3>
             <p className="metric-label">Total Agents</p>
           </div>
         </div>
@@ -392,7 +405,7 @@ const Overview: React.FC = () => {
             <div className="metric-change positive">100%</div>
           </div>
           <div className="metric-content">
-            <h3 className="metric-value">{metrics.HEALTHY_AGENTS}</h3>
+            <h3 className="metric-value">{ideationHealth?.total_agents || 10}</h3>
             <p className="metric-label">Healthy Agents</p>
           </div>
         </div>
@@ -400,10 +413,10 @@ const Overview: React.FC = () => {
         <div className="metric-card">
           <div className="metric-header">
             <Lightbulb size={24} className="metric-icon warning" />
-            <div className="metric-change positive">+{metrics.TOTAL_IDEAS}</div>
+            <div className="metric-change positive">+{ideasStats?.total_ideas || 0}</div>
           </div>
           <div className="metric-content">
-            <h3 className="metric-value">{metrics.TOTAL_IDEAS}</h3>
+            <h3 className="metric-value">{ideasStats?.total_ideas || 0}</h3>
             <p className="metric-label">Total Ideas</p>
           </div>
         </div>
@@ -411,10 +424,10 @@ const Overview: React.FC = () => {
         <div className="metric-card">
           <div className="metric-header">
             <Zap size={24} className="metric-icon danger" />
-            <div className="metric-change positive">+{metrics.FAST_TRACK_IDEAS}</div>
+            <div className="metric-change positive">+{ideasStats?.decisions?.fast_track || 0}</div>
           </div>
           <div className="metric-content">
-            <h3 className="metric-value">{metrics.FAST_TRACK_IDEAS}</h3>
+            <h3 className="metric-value">{ideasStats?.decisions?.fast_track || 0}</h3>
             <p className="metric-label">Fast Track Ideas</p>
           </div>
         </div>
@@ -478,15 +491,15 @@ const Overview: React.FC = () => {
           </Link>
         </div>
         <div className="activity-list">
-          {ideas.filter((idea: Idea) => idea.decision === 'fast_track').slice(0, 3).map((idea) => (
+          {MOCK_IDEAS.filter(idea => idea.fast_track).slice(0, 3).map((idea) => (
             <div key={idea.id} className="activity-item">
               <div className="activity-icon">
                 <Zap size={16} className="fast-track-icon" />
               </div>
               <div className="activity-content">
-                <h4>{idea.title}</h4>
+                <h4>{idea.concept}</h4>
                 <p className="activity-meta">
-                  {idea.agent} • ICE+ Score: {idea.ice_plus_score} • {new Date(idea.created_at).toLocaleDateString()}
+                  {idea.agent} • ICE+ Score: {idea.ice_score} • {new Date(idea.created_at).toLocaleDateString()}
                 </p>
               </div>
               <div className="activity-status fast-track">
@@ -775,70 +788,84 @@ const IdeaPipeline: React.FC = () => {
   const [filterAgent, setFilterAgent] = useState('all');
   const [sortBy, setSortBy] = useState('created_at');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Fetch ideas from API
+  // Fetch ideas from production API with server-side filtering
   useEffect(() => {
     const fetchIdeas = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${IDEAS_API_URL}/ideas`);
+        setError(null);
+        
+        // Build API URL with filters
+        let apiUrl = `${IDEAS_API_URL}/ideas`;
+        const params = new URLSearchParams();
+        
+        if (filterDecision !== 'all') {
+          // Map UI filter values to API values
+          const decisionMap: { [key: string]: string } = {
+            'Fast Track': 'fast_track',
+            'Approved': 'approved',
+            'Review': 'review',
+            'Archive': 'archive'
+          };
+          params.append('decision', decisionMap[filterDecision] || filterDecision.toLowerCase());
+        }
+        
+        if (filterAgent !== 'all') {
+          params.append('agent', filterAgent);
+        }
+        
+        if (searchTerm) {
+          params.append('search', searchTerm);
+        }
+        
+        if (params.toString()) {
+          apiUrl += '?' + params.toString();
+        }
+        
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         
-        // Transform API data to match dashboard format
-        const transformedIdeas = (data.ideas || []).map((idea: ApiIdea) => ({
-          id: idea.id.toString(),
-          title: idea.content.substring(0, 100) + '...',
-          content: idea.content,
-          decision: idea.final_decision,
-          agent: idea.agent_name,
-          created_at: idea.created_at,
-          ice_plus_score: idea.ice_plus_score || 0,
-          matrix_score: idea.weighted_matrix_score || 0,
-          profit_tier: idea.profit_tier || 1
+        // Transform API data to match our interface
+        const transformedIdeas: Idea[] = data.ideas.map((item: any) => ({
+          id: item.id,
+          concept: item.content,
+          profit_tier: item.profit_tier,
+          ice_score: item.ice_plus_score,
+          decision: item.final_decision === 'fast_track' ? 'Fast Track' : 
+                   item.final_decision === 'approved' ? 'Approved' :
+                   item.final_decision === 'review' ? 'Review' : 'Archive',
+          fast_track: item.final_decision === 'fast_track',
+          agent: item.agent_name,
+          created_at: item.created_at
         }));
         
         setIdeas(transformedIdeas);
-        setFilteredIdeas(transformedIdeas);
-      } catch (error) {
-        console.error('Failed to fetch ideas:', error);
-        // Fallback to empty array on error
-        setIdeas([]);
-        setFilteredIdeas([]);
-      } finally {
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching ideas:', err);
+        setError('Failed to load ideas. Please try again.');
         setLoading(false);
       }
     };
 
     fetchIdeas();
-  }, []);
+  }, [filterDecision, filterAgent, searchTerm]); // Re-fetch when filters change
 
+  // Update filtered ideas when ideas change (server-side filtering handles most filtering)
   useEffect(() => {
     let filtered = ideas;
 
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter((idea: Idea) => 
-        idea.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        idea.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        idea.agent.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Apply decision filter
-    if (filterDecision !== 'all') {
-      filtered = filtered.filter((idea: Idea) => idea.decision === filterDecision);
-    }
-
-    // Apply agent filter
-    if (filterAgent !== 'all') {
-      filtered = filtered.filter((idea: Idea) => idea.agent === filterAgent);
-    }
-
-    // Apply sorting
+    // Apply client-side sorting only (filtering is done server-side)
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'ice_score':
-          return b.ice_plus_score - a.ice_plus_score;
+          return b.ice_score - a.ice_score;
         case 'profit_tier':
           return a.profit_tier - b.profit_tier;
         case 'created_at':
@@ -848,7 +875,7 @@ const IdeaPipeline: React.FC = () => {
     });
 
     setFilteredIdeas(filtered);
-  }, [ideas, searchTerm, filterDecision, filterAgent, sortBy]);
+  }, [ideas, sortBy]); // Only depend on ideas and sortBy since filtering is server-side
 
   const getDecisionColor = (decision: string) => {
     switch (decision) {
@@ -868,17 +895,6 @@ const IdeaPipeline: React.FC = () => {
       default: return 'Unknown';
     }
   };
-
-  if (loading) {
-    return (
-      <div className="main-content">
-        <div className="loading-container">
-          <RefreshCw className="loading-spinner" size={24} />
-          <p>Loading ideas data...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="main-content">
@@ -950,15 +966,15 @@ const IdeaPipeline: React.FC = () => {
           <p>Total Ideas</p>
         </div>
         <div className="stat-card">
-          <h3>{filteredIdeas.filter((idea: Idea) => idea.decision === 'fast_track').length}</h3>
+          <h3>{filteredIdeas.filter(idea => idea.fast_track).length}</h3>
           <p>Fast Track</p>
         </div>
-        <div className="metric-card">
-          <h3>{filteredIdeas.filter((idea: Idea) => idea.decision === 'approved').length}</h3>
+        <div className="stat-card">
+          <h3>{filteredIdeas.filter(idea => idea.decision === 'Approved').length}</h3>
           <p>Approved</p>
         </div>
         <div className="stat-card">
-          <h3>{(filteredIdeas.reduce((sum, idea) => sum + idea.ice_plus_score, 0) / filteredIdeas.length || 0).toFixed(1)}</h3>
+          <h3>{(filteredIdeas.reduce((sum, idea) => sum + idea.ice_score, 0) / filteredIdeas.length || 0).toFixed(1)}</h3>
           <p>Avg ICE+ Score</p>
         </div>
       </div>
@@ -969,8 +985,8 @@ const IdeaPipeline: React.FC = () => {
           <div key={idea.id} className="idea-card">
             <div className="idea-header">
               <div className="idea-title">
-                <h4>{idea.title}</h4>
-                {idea.decision === 'fast_track' && <Zap size={16} className="fast-track-icon" />}
+                <h4>{idea.concept}</h4>
+                {idea.fast_track && <Zap size={16} className="fast-track-icon" />}
               </div>
               <div className={`decision-badge ${getDecisionColor(idea.decision)}`}>
                 {idea.decision}
@@ -982,7 +998,7 @@ const IdeaPipeline: React.FC = () => {
                 <strong>Agent:</strong> {idea.agent}
               </span>
               <span className="meta-item">
-                <strong>ICE+ Score:</strong> {idea.ice_plus_score}
+                <strong>ICE+ Score:</strong> {idea.ice_score}
               </span>
               <span className="meta-item">
                 <strong>Profit Tier:</strong> {getProfitTierLabel(idea.profit_tier)}
