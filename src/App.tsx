@@ -319,15 +319,16 @@ const Overview: React.FC = () => {
         if (ideasResponse.ok) {
           const ideasData = await ideasResponse.json();
           
-          // Ensure ideasData is an array before using filter
-          const ideasArray = Array.isArray(ideasData) ? ideasData : [];
+          // Handle the API response structure: {fast_track: number, ideas: array}
+          const ideasArray = Array.isArray(ideasData.ideas) ? ideasData.ideas : [];
+          const fastTrackFromAPI = ideasData.fast_track || 0;
           setIdeas(ideasArray);
           
           // Calculate statistics from ideas data
           const stats = {
             total_ideas: ideasArray.length,
             decisions: {
-              fast_track: ideasArray.filter((idea: any) => idea.decision === 'fast_track').length,
+              fast_track: fastTrackFromAPI, // Use the fast_track count from API
               archive: ideasArray.filter((idea: any) => idea.decision === 'archive').length,
               approved: ideasArray.filter((idea: any) => idea.decision === 'approved').length,
               review: ideasArray.filter((idea: any) => idea.decision === 'review').length
