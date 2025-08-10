@@ -293,6 +293,7 @@ const Overview: React.FC = () => {
   const [cosPmStatus, setCosPmStatus] = useState<CosPmStatus | null>(null);
   const [ideationHealth, setIdeationHealth] = useState<any>(null);
   const [ideasStats, setIdeasStats] = useState<any>(null);
+  const [ideas, setIdeas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -311,11 +312,23 @@ const Overview: React.FC = () => {
         const ideationData = await fetchIdeationAgentsHealth();
         setIdeationHealth(ideationData);
         
-        // Fetch ideas statistics
-        const ideasResponse = await fetch(`${IDEAS_API_URL}/stats`);
+        // Fetch ideas and calculate statistics
+        const ideasResponse = await fetch(`${IDEAS_API_URL}/ideas`);
         if (ideasResponse.ok) {
           const ideasData = await ideasResponse.json();
-          setIdeasStats(ideasData);
+          setIdeas(ideasData);
+          
+          // Calculate statistics from ideas data
+          const stats = {
+            total_ideas: ideasData.length,
+            decisions: {
+              fast_track: ideasData.filter((idea: any) => idea.decision === 'fast_track').length,
+              archive: ideasData.filter((idea: any) => idea.decision === 'archive').length,
+              approved: ideasData.filter((idea: any) => idea.decision === 'approved').length,
+              review: ideasData.filter((idea: any) => idea.decision === 'review').length
+            }
+          };
+          setIdeasStats(stats);
         }
         
       } catch (error) {
@@ -491,15 +504,15 @@ const Overview: React.FC = () => {
           </Link>
         </div>
         <div className="activity-list">
-          {MOCK_IDEAS.filter(idea => idea.fast_track).slice(0, 3).map((idea) => (
+          {ideas.filter(idea => idea.decision === 'fast_track').slice(0, 3).map((idea) => (
             <div key={idea.id} className="activity-item">
               <div className="activity-icon">
                 <Zap size={16} className="fast-track-icon" />
               </div>
               <div className="activity-content">
-                <h4>{idea.concept}</h4>
+                <h4>{idea.title || idea.concept}</h4>
                 <p className="activity-meta">
-                  {idea.agent} • ICE+ Score: {idea.ice_score} • {new Date(idea.created_at).toLocaleDateString()}
+                  {idea.agent} • ICE+ Score: {idea.ice_plus_score} • {new Date(idea.created_at).toLocaleDateString()}
                 </p>
               </div>
               <div className="activity-status fast-track">
