@@ -49,7 +49,8 @@ interface Idea {
 
 // API Configuration
 const API_BASE_URL = 'https://ai-staff-api-gateway.ambitioussea-9ca2abb1.centralus.azurecontainerapps.io';
-const IDEAS_API_URL = 'https://5002-i3lmtwdcd2b6b4dj3nq9l-e2661bcb.manusvm.computer/api';
+// Production API URL - hardcoded to ensure it's included in build
+// const IDEAS_API_URL = 'https://5002-i3lmtwdcd2b6b4dj3nq9l-e2661bcb.manusvm.computer/api';
 const AZURE_FUNCTIONS_API_BASE = 'https://ai-staff-functions.azurewebsites.net/api';
 
 // Ideation Agents Configuration
@@ -307,7 +308,7 @@ const Overview: React.FC = () => {
         setIdeationHealth(ideationData);
         
         // Fetch ideas statistics
-        const ideasResponse = await fetch(`${IDEAS_API_URL}/stats`);
+        const ideasResponse = await fetch(`https://5002-i3lmtwdcd2b6b4dj3nq9l-e2661bcb.manusvm.computer/api/stats`);
         if (ideasResponse.ok) {
           const ideasData = await ideasResponse.json();
           setIdeasStats(ideasData);
@@ -793,7 +794,7 @@ const IdeaPipeline: React.FC = () => {
         setError(null);
         
         // Build API URL with filters
-        let apiUrl = `${IDEAS_API_URL}/ideas`;
+        let apiUrl = `https://5002-i3lmtwdcd2b6b4dj3nq9l-e2661bcb.manusvm.computer/api/ideas`;
         const params = new URLSearchParams();
         
         if (filterDecision !== 'all') {
