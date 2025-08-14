@@ -884,8 +884,8 @@ const IdeaPipeline: React.FC = () => {
     // Apply decision filter
     if (filterDecision !== 'all') {
       if (filterDecision === 'Fast Track') {
-        // Filter by fast_track boolean field instead of decision string
-        filtered = filtered.filter(idea => idea.fast_track === true);
+        // Filter by decision field to include all Fast Track ideas
+        filtered = filtered.filter(idea => idea.decision === 'Fast Track');
       } else {
         // For other decisions, use the decision field
         filtered = filtered.filter(idea => idea.decision === filterDecision);
